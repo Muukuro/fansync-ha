@@ -1,0 +1,15 @@
+{
+  "domain": "fansync_ble",
+  "name": "FanSync BLE Fan",
+  "version": "0.2.0",
+  "documentation": "https://github.com/your-user/fansync_ble",
+  "requirements": [
+    "bleak>=0.21.0"
+  ],
+  "codeowners": [
+    "@your-github"
+  ],
+  "iot_class": "local_push",
+  "integration_type": "device",
+  "config_flow": true
+}
