@@ -1,5 +1,4 @@
-# FanSync BLE (custom_components/fansync_ble)
-
+# FanSync BLE
 Control a FanSync BLE ceiling fan (fan + light) using a reverse‑engineered protocol.
 
 ## Install
