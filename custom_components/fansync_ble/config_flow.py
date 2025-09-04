@@ -45,13 +45,14 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class FanSyncOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry):
-        self.config_entry = config_entry
+        # Avoid assigning to deprecated attribute; store locally
+        self._config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        opts = self.config_entry.options
+        opts = self._config_entry.options
         schema = vol.Schema({
             vol.Required(CONF_HAS_LIGHT, default=opts.get(CONF_HAS_LIGHT, DEFAULT_HAS_LIGHT)): bool,
             vol.Required(CONF_DIMMABLE, default=opts.get(CONF_DIMMABLE, DEFAULT_DIMMABLE)): bool,
