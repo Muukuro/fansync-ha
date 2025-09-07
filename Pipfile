@@ -9,7 +9,10 @@ homeassistant = "*"
 [dev-packages]
 pytest = "*"
 pytest-asyncio = "*"
-bleak = "*"
+# Bleak pulls in pyobjc on macOS only; add platform markers so Linux CI doesn't try to build PyObjC
+# On Linux/Windows, install bleak; on macOS for CI we generally don't run, but this keeps intent clear.
+# Most importantly: prevent resolving macOS-only PyObjC wheels on Linux by excluding macOS from lock when generated on Linux.
+bleak = {version = "*", markers = "platform_system != 'Darwin'"}
 ruff = "*"
 black = "*"
 
