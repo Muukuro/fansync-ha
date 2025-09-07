@@ -9,8 +9,11 @@ from .const import DEFAULT_POLL_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class FanSyncCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass: HomeAssistant, address: str, poll_interval: int | None = None):
+    def __init__(
+        self, hass: HomeAssistant, address: str, poll_interval: int | None = None
+    ):
         super().__init__(
             hass,
             logger=_LOGGER,
@@ -34,7 +37,10 @@ class FanSyncCoordinator(DataUpdateCoordinator):
             # Common transient issue: no available backend connection slot or device out of range
             msg = str(e)
             if "connection slot" in msg or "Not Found" in msg or "reach address" in msg:
-                _LOGGER.debug("FanSync BLE update skipped due to transient BLE backend issue: %s", msg)
+                _LOGGER.debug(
+                    "FanSync BLE update skipped due to transient BLE backend issue: %s",
+                    msg,
+                )
                 return self._last_state
             _LOGGER.warning("FanSync BLE update failed: %s", msg)
             return self._last_state

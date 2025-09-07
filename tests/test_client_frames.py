@@ -1,5 +1,9 @@
 from custom_components.fansync_ble.client import build_frame, FanState
-from custom_components.fansync_ble.const import GET_FAN_STATUS, CONTROL_FAN_STATUS, RETURN_FAN_STATUS
+from custom_components.fansync_ble.const import (
+    GET_FAN_STATUS,
+    CONTROL_FAN_STATUS,
+    RETURN_FAN_STATUS,
+)
 
 
 def checksum9(arr: bytes) -> int:

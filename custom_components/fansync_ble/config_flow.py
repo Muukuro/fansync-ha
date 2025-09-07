@@ -3,11 +3,19 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from .const import (
-    DOMAIN, DEFAULT_NAME_HINT,
-    CONF_HAS_LIGHT, CONF_DIMMABLE, CONF_DIRECTION_SUPPORTED, CONF_POLL_INTERVAL,
-    DEFAULT_HAS_LIGHT, DEFAULT_DIMMABLE, DEFAULT_DIRECTION_SUPPORTED, DEFAULT_POLL_INTERVAL,
+    DOMAIN,
+    DEFAULT_NAME_HINT,
+    CONF_HAS_LIGHT,
+    CONF_DIMMABLE,
+    CONF_DIRECTION_SUPPORTED,
+    CONF_POLL_INTERVAL,
+    DEFAULT_HAS_LIGHT,
+    DEFAULT_DIMMABLE,
+    DEFAULT_DIRECTION_SUPPORTED,
+    DEFAULT_POLL_INTERVAL,
 )
 from .client import discover_candidates
+
 
 class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -24,7 +32,7 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_DIMMABLE: DEFAULT_DIMMABLE,
                     CONF_DIRECTION_SUPPORTED: DEFAULT_DIRECTION_SUPPORTED,
                     CONF_POLL_INTERVAL: DEFAULT_POLL_INTERVAL,
-                }
+                },
             )
 
         devices = await discover_candidates(timeout=8.0, name_hint=DEFAULT_NAME_HINT)
@@ -33,15 +41,18 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if not choices:
             choices = [""]
 
-        schema = vol.Schema({
-            vol.Required("address"): vol.In(choices),
-        })
+        schema = vol.Schema(
+            {
+                vol.Required("address"): vol.In(choices),
+            }
+        )
         return self.async_show_form(step_id="user", data_schema=schema)
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
         return FanSyncOptionsFlowHandler(config_entry)
+
 
 class FanSyncOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry):
@@ -53,10 +64,24 @@ class FanSyncOptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data=user_input)
 
         opts = self._config_entry.options
-        schema = vol.Schema({
-            vol.Required(CONF_HAS_LIGHT, default=opts.get(CONF_HAS_LIGHT, DEFAULT_HAS_LIGHT)): bool,
-            vol.Required(CONF_DIMMABLE, default=opts.get(CONF_DIMMABLE, DEFAULT_DIMMABLE)): bool,
-            vol.Required(CONF_DIRECTION_SUPPORTED, default=opts.get(CONF_DIRECTION_SUPPORTED, DEFAULT_DIRECTION_SUPPORTED)): bool,
-            vol.Required(CONF_POLL_INTERVAL, default=opts.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL)): int,
-        })
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_HAS_LIGHT, default=opts.get(CONF_HAS_LIGHT, DEFAULT_HAS_LIGHT)
+                ): bool,
+                vol.Required(
+                    CONF_DIMMABLE, default=opts.get(CONF_DIMMABLE, DEFAULT_DIMMABLE)
+                ): bool,
+                vol.Required(
+                    CONF_DIRECTION_SUPPORTED,
+                    default=opts.get(
+                        CONF_DIRECTION_SUPPORTED, DEFAULT_DIRECTION_SUPPORTED
+                    ),
+                ): bool,
+                vol.Required(
+                    CONF_POLL_INTERVAL,
+                    default=opts.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL),
+                ): int,
+            }
+        )
         return self.async_show_form(step_id="init", data_schema=schema)

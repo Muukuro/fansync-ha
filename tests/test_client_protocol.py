@@ -7,7 +7,9 @@ def checksum9(arr: bytes) -> int:
 
 
 def make_return(speed=1, direction=0, up=0, down=0, tlo=0, thi=0, ftype=0):
-    buf = bytearray([0x53, RETURN_FAN_STATUS, speed, direction, up, down, tlo, thi, ftype])
+    buf = bytearray(
+        [0x53, RETURN_FAN_STATUS, speed, direction, up, down, tlo, thi, ftype]
+    )
     buf.append(checksum9(buf))
     return bytes(buf)
 

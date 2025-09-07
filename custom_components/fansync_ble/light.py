@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN, CONF_DIMMABLE, CONF_HAS_LIGHT
 from .client import FanState
 
+
 class FanSyncLight(LightEntity):
     _attr_has_entity_name = True
     _attr_name = "Fan Light"
@@ -15,7 +16,9 @@ class FanSyncLight(LightEntity):
         self.coordinator = coordinator
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}-light"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE")
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE"
+        )
 
         if entry.options.get(CONF_DIMMABLE, True):
             self._attr_supported_color_modes = {ColorMode.BRIGHTNESS}
@@ -49,17 +52,24 @@ class FanSyncLight(LightEntity):
             percent = max(1, percent)  # avoid 0 when turning on
         else:
             percent = 100  # on/off only
-        await self.coordinator.client.set_light(percent, st=self.coordinator._last_state, assume_speed=1)
+        await self.coordinator.client.set_light(
+            percent, st=self.coordinator._last_state, assume_speed=1
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
-        await self.coordinator.client.set_light(0, st=self.coordinator._last_state, assume_speed=0)
+        await self.coordinator.client.set_light(
+            0, st=self.coordinator._last_state, assume_speed=0
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_update(self):
         await self.coordinator.async_request_refresh()
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     coord = hass.data[DOMAIN][entry.entry_id]
     # Only add light entity if enabled in options
     if entry.options.get(CONF_HAS_LIGHT, True):

@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 PLATFORMS: list[str] = ["fan", "light"]
 
+
 async def async_setup_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
     # Lazy import to avoid importing Home Assistant dependencies at module import time
     from .coordinator import FanSyncCoordinator
@@ -25,10 +26,12 @@ async def async_setup_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
     entry.async_on_unload(entry.add_update_listener(async_options_updated))
     return True
 
+
 async def async_unload_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     hass.data[DOMAIN].pop(entry.entry_id, None)
     return unload_ok
+
 
 async def async_options_updated(hass: "HomeAssistant", entry: "ConfigEntry"):
     await hass.config_entries.async_reload(entry.entry_id)

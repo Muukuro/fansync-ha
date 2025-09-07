@@ -9,7 +9,9 @@ def checksum9(arr: bytes) -> int:
 
 
 def make_return(speed=1, direction=0, up=0, down=0, tlo=0, thi=0, ftype=0):
-    buf = bytearray([0x53, RETURN_FAN_STATUS, speed, direction, up, down, tlo, thi, ftype])
+    buf = bytearray(
+        [0x53, RETURN_FAN_STATUS, speed, direction, up, down, tlo, thi, ftype]
+    )
     buf.append(checksum9(buf))
     return bytes(buf)
 
@@ -54,7 +56,9 @@ async def test_set_speed_preserves_fields_and_assume_when_invalid(monkeypatch):
     c = FanSyncBleClient("AA:BB")
 
     # Case 1: use provided valid state
-    st = FanState.from_bytes(make_return(speed=1, direction=0, up=0, down=80, tlo=0x34, thi=0x12, ftype=9))
+    st = FanState.from_bytes(
+        make_return(speed=1, direction=0, up=0, down=80, tlo=0x34, thi=0x12, ftype=9)
+    )
     await c.set_speed(3, st=st)
     # last write must be CONTROL frame with new speed 3 and preserved others
     assert dummy.writes, "no writes performed"
@@ -79,6 +83,7 @@ async def test_set_speed_preserves_fields_and_assume_when_invalid(monkeypatch):
 @pytest.mark.asyncio
 async def test_set_light_clamps_and_assumes_when_invalid(monkeypatch):
     from custom_components.fansync_ble import client as client_mod
+
     dummy = DummyClient()
     monkeypatch.setattr(client_mod, "BleakClient", lambda addr: dummy)
 
@@ -93,7 +98,9 @@ async def test_set_light_clamps_and_assumes_when_invalid(monkeypatch):
 
     # Valid state: preserve all but 'down'
     dummy.writes.clear()
-    st = FanState.from_bytes(make_return(speed=2, direction=1, up=0, down=40, tlo=1, thi=0, ftype=7))
+    st = FanState.from_bytes(
+        make_return(speed=2, direction=1, up=0, down=40, tlo=1, thi=0, ftype=7)
+    )
     await c.set_light(-5, st=st)  # clamps to 0
     _, payload2, _ = dummy.writes[-1]
     assert payload2[2] == st.speed
@@ -105,13 +112,16 @@ async def test_set_light_clamps_and_assumes_when_invalid(monkeypatch):
 @pytest.mark.asyncio
 async def test_set_direction_preserves_or_assumes(monkeypatch):
     from custom_components.fansync_ble import client as client_mod
+
     dummy = DummyClient()
     monkeypatch.setattr(client_mod, "BleakClient", lambda addr: dummy)
 
     c = FanSyncBleClient("AA:BB")
 
     # Valid state preserves others
-    st = FanState.from_bytes(make_return(speed=1, direction=0, down=10, tlo=2, thi=0, ftype=1))
+    st = FanState.from_bytes(
+        make_return(speed=1, direction=0, down=10, tlo=2, thi=0, ftype=1)
+    )
     await c.set_direction(1, st=st)
     _, payload, _ = dummy.writes[-1]
     assert payload[2] == st.speed
@@ -145,6 +155,7 @@ async def test_discover_candidates_filters_by_name_hint(monkeypatch):
 
     # Patch BleakScanner.discover inside module
     from custom_components.fansync_ble import client as client_mod
+
     monkeypatch.setattr(client_mod.BleakScanner, "discover", fake_discover)
 
     # No hint -> all with names

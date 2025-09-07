@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN, CONF_DIRECTION_SUPPORTED
 from .client import FanState
 
+
 class FanSyncFan(FanEntity):
     _attr_has_entity_name = True
     _attr_name = "Ceiling Fan"
@@ -16,7 +17,9 @@ class FanSyncFan(FanEntity):
         self.coordinator = coordinator
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}-fan"
-        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE")
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE"
+        )
 
         if entry.options.get(CONF_DIRECTION_SUPPORTED, False):
             self._attr_supported_features = FanEntityFeature.SET_DIRECTION
@@ -37,7 +40,9 @@ class FanSyncFan(FanEntity):
     async def async_set_percentage(self, percentage: int) -> None:
         p = percentage or 0
         new_speed = 0 if p <= 0 else 1 if p <= 33 else 2 if p <= 66 else 3
-        await self.coordinator.client.set_speed(new_speed, st=self.coordinator._last_state, assume_light=100)
+        await self.coordinator.client.set_speed(
+            new_speed, st=self.coordinator._last_state, assume_light=100
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, percentage: int | None = None, **kwargs) -> None:
@@ -51,7 +56,9 @@ class FanSyncFan(FanEntity):
             await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
-        await self.coordinator.client.set_speed(0, st=self.coordinator._last_state, assume_light=100)
+        await self.coordinator.client.set_speed(
+            0, st=self.coordinator._last_state, assume_light=100
+        )
         await self.coordinator.async_request_refresh()
 
     @property
@@ -72,6 +79,9 @@ class FanSyncFan(FanEntity):
     async def async_update(self):
         await self.coordinator.async_request_refresh()
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     coord = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([FanSyncFan(coord, entry)], update_before_add=True)
