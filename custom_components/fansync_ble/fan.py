@@ -1,7 +1,9 @@
 from __future__ import annotations
 from homeassistant.components.fan import FanEntity, FanEntityFeature
-from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN, CONF_DIRECTION_SUPPORTED
 from .client import FanState
 
@@ -69,11 +71,6 @@ class FanSyncFan(FanEntity):
 
     async def async_update(self):
         await self.coordinator.async_request_refresh()
-
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN, CONF_HAS_LIGHT
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coord = hass.data[DOMAIN][entry.entry_id]

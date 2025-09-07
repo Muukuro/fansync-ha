@@ -1,7 +1,10 @@
 from __future__ import annotations
 from homeassistant.components.light import LightEntity, ColorMode
 from homeassistant.helpers.entity import DeviceInfo
-from .const import DOMAIN, CONF_DIMMABLE
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from .const import DOMAIN, CONF_DIMMABLE, CONF_HAS_LIGHT
 from .client import FanState
 
 class FanSyncLight(LightEntity):
@@ -55,11 +58,6 @@ class FanSyncLight(LightEntity):
 
     async def async_update(self):
         await self.coordinator.async_request_refresh()
-
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN, CONF_HAS_LIGHT
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coord = hass.data[DOMAIN][entry.entry_id]

@@ -3,7 +3,7 @@ import asyncio
 from dataclasses import dataclass
 from bleak import BleakClient, BleakScanner
 from .const import (
-    SERVICE_UUID, WRITE_CHAR_UUID, NOTIFY_CHAR_UUID,
+    WRITE_CHAR_UUID, NOTIFY_CHAR_UUID,
     GET_FAN_STATUS, CONTROL_FAN_STATUS, RETURN_FAN_STATUS,
 )
 

@@ -1,4 +1,3 @@
-import pytest
 from custom_components.fansync_ble.client import build_frame, FanState
 from custom_components.fansync_ble.const import CONTROL_FAN_STATUS, RETURN_FAN_STATUS
 
