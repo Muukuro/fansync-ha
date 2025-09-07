@@ -63,9 +63,6 @@ from .const import DOMAIN, CONF_HAS_LIGHT
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     coord = hass.data[DOMAIN][entry.entry_id]
-    if __name__.endswith("fan"):
-        async_add_entities([FanSyncFan(coord, entry)], update_before_add=True)
-    else:
-        # Only add light entity if enabled in options
-        if entry.options.get(CONF_HAS_LIGHT, True):
-            async_add_entities([FanSyncLight(coord, entry)], update_before_add=True)
+    # Only add light entity if enabled in options
+    if entry.options.get(CONF_HAS_LIGHT, True):
+        async_add_entities([FanSyncLight(coord, entry)], update_before_add=True)
