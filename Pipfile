@@ -7,6 +7,11 @@ name = "pypi"
 homeassistant = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-asyncio = "*"
+bleak = "*"
+ruff = "*"
+black = "*"
 
 [requires]
 python_version = "3.13"
