@@ -28,8 +28,11 @@ class FanState:
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "FanState":
+        # Expect a 10-byte frame: 9 data bytes + 1 checksum
         if len(data) >= 10 and data[0] == 0x53 and data[1] == RETURN_FAN_STATUS:
-            return cls(data[2], data[3], data[4], data[5], data[6], data[7], data[8], True)
+            # Validate checksum to avoid accepting corrupted frames
+            if _checksum9(data) == (data[9] & 0xFF):
+                return cls(data[2], data[3], data[4], data[5], data[6], data[7], data[8], True)
         return cls()
 
     def minutes(self) -> int:
