@@ -4,15 +4,11 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '0 0 * * 1'
-  workflow_dispatch:
+    - cron:  '0 0 * * *'
 
 jobs:
-  hassfest:
-    name: hassfest
-    runs-on: ubuntu-latest
+  validate:
+    runs-on: "ubuntu-latest"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Run hassfest
-        uses: home-assistant/actions/hassfest@main
+        - uses: "actions/checkout@v4"
+        - uses: "home-assistant/actions/hassfest@master"
