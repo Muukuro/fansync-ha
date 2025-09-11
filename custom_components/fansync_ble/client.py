@@ -125,6 +125,38 @@ class FanSyncBleClient:
         # Optional Home Assistant context; if provided, we can use HA's Bluetooth helper
         self._hass = hass
 
+    async def _establish_with_brc(self, target):
+        """Establish connection via bleak-retry-connector handling signature variants.
+
+        Tries multiple known signatures, always providing a stable name for logging/diagnostics.
+        """
+        if establish_connection is None:
+            raise RuntimeError("bleak-retry-connector not available")
+        name = f"fansync_ble_{self._address}"
+        # Preferred HA signature: (hass, client_class, device_or_address, name=..., timeout=...)
+        try:
+            if self._hass is not None:
+                return await establish_connection(
+                    self._hass, BleakClient, target, name=name, timeout=15.0
+                )
+        except TypeError:
+            # Fall through to other signatures
+            pass
+        # Signature with keyword name: (client_class, device_or_address, name=..., timeout=...)
+        try:
+            return await establish_connection(
+                BleakClient, target, name=name, timeout=15.0
+            )
+        except TypeError:
+            pass
+        # Signature with positional name: (client_class, device_or_address, name, timeout=...)
+        try:
+            return await establish_connection(BleakClient, target, name, timeout=15.0)
+        except TypeError:
+            pass
+        # Old signatures without name
+        return await establish_connection(BleakClient, target, timeout=15.0)
+
     async def _connect(self):
         last = None
         for _ in range(self._connect_retries):
@@ -154,18 +186,10 @@ class FanSyncBleClient:
                     # the extra kwargs that the connector forwards (like disconnected_callback).
                     use_brc = _bleak_ctor_accepts_disconnected()
                     if use_brc and dev is not None:
-                        client = await establish_connection(
-                            BleakClient,
-                            dev,
-                            timeout=15.0,
-                        )
+                        client = await self._establish_with_brc(dev)
                     elif use_brc:
                         # Pass address directly; bleak-retry-connector resolves and retries internally
-                        client = await establish_connection(
-                            BleakClient,
-                            self._address,
-                            timeout=15.0,
-                        )
+                        client = await self._establish_with_brc(self._address)
                     else:
                         # Fallback for test stubs or environments without compatible BleakClient signature
                         client = BleakClient(self._address)
