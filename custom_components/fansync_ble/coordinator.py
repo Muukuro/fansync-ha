@@ -35,7 +35,9 @@ class FanSyncCoordinator(DataUpdateCoordinator):
             # Overall guard to ensure BLE client does not block coordinator forever
             # Allow sufficient time for BLE discovery/connection + notify roundtrip.
             # Inner get_state notification wait is short; give a larger outer budget to avoid spurious timeouts.
-            state = await asyncio.wait_for(self.client.get_state(timeout=4.0), timeout=20.0)
+            state = await asyncio.wait_for(
+                self.client.get_state(timeout=4.0), timeout=20.0
+            )
             # Only overwrite with a valid state; otherwise keep last known
             if getattr(state, "valid", False):
                 self._last_state = state
