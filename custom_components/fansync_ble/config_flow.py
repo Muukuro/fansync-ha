@@ -21,32 +21,50 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
-        if user_input is not None and "address" in user_input and user_input["address"]:
-            await self.async_set_unique_id(user_input["address"])
-            self._abort_if_unique_id_configured()
-            return self.async_create_entry(
-                title=f"FanSync BLE ({user_input.get('name','device')})",
-                data={"address": user_input["address"], "name": user_input.get("name")},
-                options={
-                    CONF_HAS_LIGHT: DEFAULT_HAS_LIGHT,
-                    CONF_DIMMABLE: DEFAULT_DIMMABLE,
-                    CONF_DIRECTION_SUPPORTED: DEFAULT_DIRECTION_SUPPORTED,
-                    CONF_POLL_INTERVAL: DEFAULT_POLL_INTERVAL,
-                },
-            )
+        errors = {}
+        # If user submitted the form, validate
+        if user_input is not None:
+            address = (user_input.get("address") or "").strip()
+            if not address:
+                errors["base"] = "address_required"
+            else:
+                await self.async_set_unique_id(address)
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(
+                    title=f"FanSync BLE ({user_input.get('name','device')})",
+                    data={"address": address, "name": user_input.get("name")},
+                    options={
+                        CONF_HAS_LIGHT: DEFAULT_HAS_LIGHT,
+                        CONF_DIMMABLE: DEFAULT_DIMMABLE,
+                        CONF_DIRECTION_SUPPORTED: DEFAULT_DIRECTION_SUPPORTED,
+                        CONF_POLL_INTERVAL: DEFAULT_POLL_INTERVAL,
+                    },
+                )
 
-        devices = await discover_candidates(timeout=8.0, name_hint=DEFAULT_NAME_HINT)
+        # Try to discover nearby devices (best-effort)
+        devices = []
+        discovery_error = None
+        try:
+            devices = await discover_candidates(timeout=8.0, name_hint=DEFAULT_NAME_HINT)
+        except Exception:
+            discovery_error = "bluetooth_unavailable"
+
         # Build selection list (address only for now)
         choices = [addr for addr, _ in devices]
-        if not choices:
-            choices = [""]
 
-        schema = vol.Schema(
-            {
-                vol.Required("address"): vol.In(choices),
-            }
-        )
-        return self.async_show_form(step_id="user", data_schema=schema)
+        # If no devices found or discovery failed: show a free-text field with helpful error
+        if not choices:
+            schema = vol.Schema({vol.Required("address", default=""): str})
+            if discovery_error:
+                errors["base"] = discovery_error
+            else:
+                # Only set this if not already set due to validation
+                errors.setdefault("base", "no_devices_found")
+            return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+
+        # Devices found: present a dropdown for convenience but still allow manual later by clearing value
+        schema = vol.Schema({vol.Required("address"): vol.In(choices)})
+        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     @staticmethod
     @callback

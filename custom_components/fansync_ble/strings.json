@@ -1,3 +1,19 @@
 {
-  "title": "FanSync BLE"
+  "title": "FanSync BLE",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up FanSync BLE",
+        "description": "Select your fan from the list if discovered, or enter its BLE address manually. If nothing appears, ensure Bluetooth is available and the fan is powered on and nearby.",
+        "data": {
+          "address": "BLE device address"
+        }
+      }
+    },
+    "error": {
+      "no_devices_found": "No FanSync devices discovered. Make sure Bluetooth is enabled, the fan is on and within range, then try again.",
+      "bluetooth_unavailable": "Bluetooth is unavailable in this Home Assistant instance. Ensure the host has a working Bluetooth adapter or use a Bluetooth Proxy.",
+      "address_required": "Please enter a BLE address."
+    }
+  }
 }
