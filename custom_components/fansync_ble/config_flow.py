@@ -30,15 +30,22 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(address)
                 self._abort_if_unique_id_configured()
+                # Build options from submitted fields
+                options = {
+                    CONF_HAS_LIGHT: user_input.get(CONF_HAS_LIGHT, DEFAULT_HAS_LIGHT),
+                    CONF_DIMMABLE: user_input.get(CONF_DIMMABLE, DEFAULT_DIMMABLE),
+                    CONF_DIRECTION_SUPPORTED: user_input.get(
+                        CONF_DIRECTION_SUPPORTED, DEFAULT_DIRECTION_SUPPORTED
+                    ),
+                    CONF_POLL_INTERVAL: user_input.get(
+                        CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
+                    ),
+                }
+                title_name = user_input.get("name") or address
                 return self.async_create_entry(
-                    title=f"FanSync BLE ({user_input.get('name','device')})",
+                    title=f"FanSync BLE ({title_name})",
                     data={"address": address, "name": user_input.get("name")},
-                    options={
-                        CONF_HAS_LIGHT: DEFAULT_HAS_LIGHT,
-                        CONF_DIMMABLE: DEFAULT_DIMMABLE,
-                        CONF_DIRECTION_SUPPORTED: DEFAULT_DIRECTION_SUPPORTED,
-                        CONF_POLL_INTERVAL: DEFAULT_POLL_INTERVAL,
-                    },
+                    options=options,
                 )
 
         # Try to discover nearby devices (best-effort)
@@ -52,9 +59,20 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Build selection list (address only for now)
         choices = [addr for addr, _ in devices]
 
-        # If no devices found or discovery failed: show a free-text field with helpful error
+        # If no devices found or discovery failed: show a free-text field with helpful error and options
         if not choices:
-            schema = vol.Schema({vol.Required("address", default=""): str})
+            schema = vol.Schema(
+                {
+                    vol.Required("address", default=""): str,
+                    vol.Optional("name", default=""): str,
+                    vol.Required(CONF_HAS_LIGHT, default=DEFAULT_HAS_LIGHT): bool,
+                    vol.Required(CONF_DIMMABLE, default=DEFAULT_DIMMABLE): bool,
+                    vol.Required(
+                        CONF_DIRECTION_SUPPORTED, default=DEFAULT_DIRECTION_SUPPORTED
+                    ): bool,
+                    vol.Required(CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL): int,
+                }
+            )
             if discovery_error:
                 errors["base"] = discovery_error
             else:
@@ -62,8 +80,19 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors.setdefault("base", "no_devices_found")
             return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
-        # Devices found: present a dropdown for convenience but still allow manual later by clearing value
-        schema = vol.Schema({vol.Required("address"): vol.In(choices)})
+        # Devices found: present a dropdown plus options
+        schema = vol.Schema(
+            {
+                vol.Required("address"): vol.In(choices),
+                vol.Optional("name", default=""): str,
+                vol.Required(CONF_HAS_LIGHT, default=DEFAULT_HAS_LIGHT): bool,
+                vol.Required(CONF_DIMMABLE, default=DEFAULT_DIMMABLE): bool,
+                vol.Required(
+                    CONF_DIRECTION_SUPPORTED, default=DEFAULT_DIRECTION_SUPPORTED
+                ): bool,
+                vol.Required(CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL): int,
+            }
+        )
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     @staticmethod

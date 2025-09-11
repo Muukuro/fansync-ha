@@ -4,9 +4,14 @@
     "step": {
       "user": {
         "title": "Set up FanSync BLE",
-        "description": "Select your fan from the list if discovered, or enter its BLE address manually. If nothing appears, ensure Bluetooth is available and the fan is powered on and nearby.",
+        "description": "Select your fan from the list if discovered, or enter its BLE address manually. If nothing appears, ensure Bluetooth is available and the fan is powered on and nearby. Configure these device options now; you can change them later in Options.",
         "data": {
-          "address": "BLE device address"
+          "address": "BLE device address",
+          "name": "Device name (optional)",
+          "has_light": "This fan has a built-in light",
+          "dimmable": "Light is dimmable",
+          "direction_supported": "Fan supports reverse direction",
+          "poll_interval": "Polling interval (seconds)"
         }
       }
     },

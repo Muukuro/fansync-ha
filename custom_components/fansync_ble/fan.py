@@ -21,15 +21,20 @@ class FanSyncFan(FanEntity):
             identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE"
         )
 
+        # Always advertise speed support via percentage. Add direction if enabled.
+        self._attr_supported_features = FanEntityFeature.SET_SPEED
         if entry.options.get(CONF_DIRECTION_SUPPORTED, False):
-            self._attr_supported_features = FanEntityFeature.SET_DIRECTION
-        else:
-            self._attr_supported_features = 0
+            self._attr_supported_features |= FanEntityFeature.SET_DIRECTION
 
     @property
     def available(self):
         st = self.coordinator._last_state
         return st is not None and st.valid
+
+    @property
+    def is_on(self):
+        st: FanState | None = self.coordinator._last_state
+        return (getattr(st, "speed", 0) if st else 0) > 0
 
     @property
     def percentage(self):

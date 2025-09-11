@@ -48,3 +48,16 @@ This document captures build/config, testing, and development conventions specif
 
 ## 5) Cleanup Policy for Tests
 - Any temporary local test files (e.g., `tmp_test_checksum.py`) are for local verification only and should not be committed.
+
+## 6) Protocol Quick Reference (see AI_INSTRUCTIONS.md for full details)
+- Frame format: 10 bytes — [0]=0x53, [1]=cmd, [2]=speed, [3]=direction, [4]=up, [5]=down, [6]=timerLo, [7]=timerHi, [8]=fanType, [9]=checksum(sum of first 9 bytes & 0xFF).
+- Commands: GET=0x30, CONTROL=0x31, RETURN=0x32.
+- Semantics in this integration:
+  - speed: 0=off, 1=low, 2=medium, 3=high; map HA percentage to these steps.
+  - direction: 0=forward, 1=reverse (only if hardware supports it via options).
+  - down: 0–100 (dimmable); clamp to {0,100} if non‑dimmable.
+  - up, timerLo/Hi, fanType: preserve values from the last valid state when sending CONTROL.
+- Operational rules:
+  - Keep BLE sessions short‑lived: connect → GET → CONTROL (if needed) → disconnect, then small delay.
+  - Always preserve untouched fields when emitting CONTROL frames; if no valid prior state, use conservative assumptions (e.g., assume_light or assume_speed as in client methods).
+- For the canonical, detailed protocol notes and rationale, read: AI_INSTRUCTIONS.md.
