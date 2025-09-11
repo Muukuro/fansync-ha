@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import inspect
 from typing import Callable, Awaitable, Any
 from bleak import BleakClient, BleakScanner
+
 try:
     from bleak_retry_connector import establish_connection
 except Exception:  # bleak-retry-connector may be provided by HA runtime
@@ -84,7 +85,9 @@ class FanState:
         return (self.timer_hi << 8) | self.timer_lo
 
 
-async def discover_candidates(timeout: float = 8.0, name_hint: str | None = None) -> list[tuple[str, str]]:
+async def discover_candidates(
+    timeout: float = 8.0, name_hint: str | None = None
+) -> list[tuple[str, str]]:
     """Discover BLE devices and return (address, name) pairs, optionally filtered by name substring."""
     devices = await BleakScanner.discover(timeout=timeout)
     nh = (name_hint or "").lower()
@@ -107,7 +110,7 @@ def _bleak_ctor_accepts_disconnected() -> bool:
     for p in sig.parameters.values():
         if p.kind == inspect.Parameter.VAR_KEYWORD:
             return True
-    return 'disconnected_callback' in sig.parameters
+    return "disconnected_callback" in sig.parameters
 
 
 class FanSyncBleClient:
@@ -183,7 +186,11 @@ class FanSyncBleClient:
                 await asyncio.sleep(0.8)
         raise last
 
-    async def _ensure_notify(self, client: BleakClient, on_state: Callable[[FanState], Any] | Callable[[FanState], Awaitable[Any]]):
+    async def _ensure_notify(
+        self,
+        client: BleakClient,
+        on_state: Callable[[FanState], Any] | Callable[[FanState], Awaitable[Any]],
+    ):
         """Start notify for RETURN frames and forward valid states to callback.
 
         Broad exception handling is intentional: some backends may not support notifications

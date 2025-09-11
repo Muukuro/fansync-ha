@@ -53,7 +53,9 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         devices = []
         discovery_error = None
         try:
-            devices = await discover_candidates(timeout=8.0, name_hint=DEFAULT_NAME_HINT)
+            devices = await discover_candidates(
+                timeout=8.0, name_hint=DEFAULT_NAME_HINT
+            )
         except Exception:
             discovery_error = "bluetooth_unavailable"
 
@@ -70,7 +72,9 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_DIRECTION_SUPPORTED, default=DEFAULT_DIRECTION_SUPPORTED
                     ): bool,
-                    vol.Required(CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL): int,
+                    vol.Required(
+                        CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL
+                    ): int,
                 }
             )
             if discovery_error:
@@ -78,7 +82,9 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 # Only set this if not already set due to validation
                 errors.setdefault("base", "no_devices_found")
-            return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+            return self.async_show_form(
+                step_id="user", data_schema=schema, errors=errors
+            )
 
         # Devices found: present a dropdown plus options
         schema = vol.Schema(
