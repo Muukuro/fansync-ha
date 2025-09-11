@@ -2,6 +2,10 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from bleak import BleakClient, BleakScanner
+try:
+    from bleak_retry_connector import establish_connection
+except Exception:  # bleak-retry-connector may be provided by HA runtime
+    establish_connection = None  # type: ignore
 from .const import (
     WRITE_CHAR_UUID,
     NOTIFY_CHAR_UUID,
@@ -87,8 +91,24 @@ class FanSyncBleClient:
         last = None
         for _ in range(self._connect_retries):
             try:
-                client = BleakClient(self._address)
-                await client.connect(timeout=15.0)
+                if establish_connection is not None:
+                    # Prefer using bleak-retry-connector when we can resolve a BLEDevice
+                    dev = await BleakScanner.find_device_by_address(self._address, timeout=5.0)
+                    if dev is not None:
+                        client = await establish_connection(
+                            BleakClient,
+                            dev,
+                            name=dev.name or self._address,
+                            disconnected_callback=None,
+                            timeout=15.0,
+                        )
+                    else:
+                        # Fallback to plain Bleak connection if device not resolvable via scanner
+                        client = BleakClient(self._address)
+                        await client.connect(timeout=15.0)
+                else:
+                    client = BleakClient(self._address)
+                    await client.connect(timeout=15.0)
                 try:
                     if not getattr(client, "services", None):
                         getter = getattr(client, "get_services", None)
@@ -145,6 +165,7 @@ class FanSyncBleClient:
                     await client.stop_notify(NOTIFY_CHAR_UUID)
                 except Exception:
                     pass
+                # bleak-retry-connector returns a client compatible with BleakClient API
                 await client.disconnect()
             except Exception:
                 pass
