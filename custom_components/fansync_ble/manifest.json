@@ -1,25 +1,25 @@
 {
   "domain": "fansync_ble",
   "name": "FanSync BLE Fan",
-  "version": "0.0.1",
-  "documentation": "https://github.com/Muukuro/fansync-ha",
-  "requirements": [
-    "bleak>=0.21.0"
-  ],
-  "codeowners": [
-    "@Muukuro"
-  ],
-  "iot_class": "local_push",
-  "issue_tracker": "https://github.com/Muukuro/fansync-ha/issues",
-  "integration_type": "device",
-  "config_flow": true,
-  "dependencies": [
-    "bluetooth"
-  ],
   "bluetooth": [
     {
       "local_name": "CeilingFan",
       "service_uuid": "cba20d00-224d-11e6-9fb8-0002a5d5c51b"
     }
-  ]
+  ],
+  "codeowners": [
+    "@Muukuro"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "bluetooth"
+  ],
+  "documentation": "https://github.com/Muukuro/fansync-ha",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/Muukuro/fansync-ha/issues",
+  "requirements": [
+    "bleak>=0.21.0"
+  ],
+  "version": "0.0.1"
 }
