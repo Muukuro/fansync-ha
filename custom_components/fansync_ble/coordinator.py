@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 from datetime import timedelta
+import asyncio
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.core import HomeAssistant
 from bleak.exc import BleakError
@@ -31,13 +32,17 @@ class FanSyncCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         try:
-            state = await self.client.get_state()
+            # Overall guard to ensure BLE client does not block coordinator forever
+            state = await asyncio.wait_for(self.client.get_state(), timeout=12.0)
             # Only overwrite with a valid state; otherwise keep last known
             if getattr(state, "valid", False):
                 self._last_state = state
             elif self._last_state is None:
                 # If we have no previous state at all, store whatever we got
                 self._last_state = state
+        except asyncio.TimeoutError:
+            _LOGGER.warning("FanSync BLE update timed out; keeping last state")
+            return self._last_state
         except BleakError as e:
             # Common transient issue: no available backend connection slot or device out of range
             msg = str(e)
