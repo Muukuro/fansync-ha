@@ -41,10 +41,9 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
                     ),
                 }
-                title_name = user_input.get("name") or address
                 return self.async_create_entry(
-                    title=f"FanSync BLE ({title_name})",
-                    data={"address": address, "name": user_input.get("name")},
+                    title=f"FanSync BLE ({address})",
+                    data={"address": address},
                     options=options,
                 )
 
@@ -64,7 +63,6 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             schema = vol.Schema(
                 {
                     vol.Required("address", default=""): str,
-                    vol.Optional("name", default=""): str,
                     vol.Required(CONF_HAS_LIGHT, default=DEFAULT_HAS_LIGHT): bool,
                     vol.Required(CONF_DIMMABLE, default=DEFAULT_DIMMABLE): bool,
                     vol.Required(
@@ -84,7 +82,6 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         schema = vol.Schema(
             {
                 vol.Required("address"): vol.In(choices),
-                vol.Optional("name", default=""): str,
                 vol.Required(CONF_HAS_LIGHT, default=DEFAULT_HAS_LIGHT): bool,
                 vol.Required(CONF_DIMMABLE, default=DEFAULT_DIMMABLE): bool,
                 vol.Required(
