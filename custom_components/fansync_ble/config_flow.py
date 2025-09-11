@@ -18,6 +18,8 @@ from .client import discover_candidates
 
 
 class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow to set up FanSync BLE integration."""
+
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
@@ -99,6 +101,8 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class FanSyncOptionsFlowHandler(config_entries.OptionsFlow):
+    """Options flow to adjust entity capabilities and polling interval."""
+
     def __init__(self, config_entry):
         # Avoid assigning to deprecated attribute; store locally
         self._config_entry = config_entry

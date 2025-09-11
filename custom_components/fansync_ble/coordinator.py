@@ -4,13 +4,18 @@ from datetime import timedelta
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.core import HomeAssistant
 from bleak.exc import BleakError
-from .client import FanSyncBleClient
+from .client import FanSyncBleClient, FanState
 from .const import DEFAULT_POLL_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class FanSyncCoordinator(DataUpdateCoordinator):
+    """Coordinator that periodically polls the fan state over BLE.
+
+    Keeps the last known (possibly invalid) state to avoid flapping availability.
+    """
+
     def __init__(
         self, hass: HomeAssistant, address: str, poll_interval: int | None = None
     ):
@@ -20,9 +25,9 @@ class FanSyncCoordinator(DataUpdateCoordinator):
             name="fansync_ble",
             update_interval=timedelta(seconds=poll_interval or DEFAULT_POLL_INTERVAL),
         )
-        self.client = FanSyncBleClient(address)
+        self.client = FanSyncBleClient(address, hass=hass)
         self.address = address
-        self._last_state = None
+        self._last_state: "FanState | None" = None
 
     async def _async_update_data(self):
         try:

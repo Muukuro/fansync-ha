@@ -1,6 +1,8 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
+import inspect
+from typing import Callable, Awaitable, Any
 from bleak import BleakClient, BleakScanner
 try:
     from bleak_retry_connector import establish_connection
@@ -16,6 +18,7 @@ from .const import (
 
 
 def _checksum9(b: bytes | bytearray) -> int:
+    """Compute checksum (sum of first 9 bytes & 0xFF) for 10-byte frames."""
     return sum(b[:9]) & 0xFF
 
 
@@ -29,6 +32,11 @@ def build_frame(
     timer_hi: int,
     fan_type: int,
 ) -> bytes:
+    """Construct a 10-byte protocol frame with checksum.
+
+    Layout: [0]=0x53, [1]=cmd, [2]=speed, [3]=direction, [4]=up, [5]=down,
+            [6]=timerLo, [7]=timerHi, [8]=fanType, [9]=checksum.
+    """
     arr = bytearray(
         [
             0x53,
@@ -48,6 +56,8 @@ def build_frame(
 
 @dataclass
 class FanState:
+    """In-memory representation of fan state parsed from RETURN frames."""
+
     speed: int = 0
     direction: int = 0
     up: int = 0
@@ -59,6 +69,7 @@ class FanState:
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "FanState":
+        """Parse a RETURN frame into a FanState, validating header, command, and checksum."""
         # Expect a 10-byte frame: 9 data bytes + 1 checksum
         if len(data) >= 10 and data[0] == 0x53 and data[1] == RETURN_FAN_STATUS:
             # Validate checksum to avoid accepting corrupted frames
@@ -69,41 +80,91 @@ class FanState:
         return cls()
 
     def minutes(self) -> int:
+        """Combine timer_hi/lo into minutes."""
         return (self.timer_hi << 8) | self.timer_lo
 
 
-async def discover_candidates(timeout: float = 8.0, name_hint: str | None = None):
+async def discover_candidates(timeout: float = 8.0, name_hint: str | None = None) -> list[tuple[str, str]]:
+    """Discover BLE devices and return (address, name) pairs, optionally filtered by name substring."""
     devices = await BleakScanner.discover(timeout=timeout)
     nh = (name_hint or "").lower()
-    out = []
+    out: list[tuple[str, str]] = []
     for d in devices:
         if d.name and (nh in d.name.lower() if nh else True):
             out.append((d.address, d.name))
     return out
 
 
+def _bleak_ctor_accepts_disconnected() -> bool:
+    """Return True if BleakClient constructor accepts **kwargs (e.g., disconnected_callback).
+
+    This informs whether bleak-retry-connector can pass extra keyword arguments safely.
+    """
+    try:
+        sig = inspect.signature(BleakClient)
+    except Exception:
+        return False
+    for p in sig.parameters.values():
+        if p.kind == inspect.Parameter.VAR_KEYWORD:
+            return True
+    return 'disconnected_callback' in sig.parameters
+
+
 class FanSyncBleClient:
-    def __init__(self, address: str, connect_retries: int = 3):
+    """Thin BLE client handling frame IO and short-lived sessions.
+
+    Follows repository guideline: connect → GET/CONTROL → disconnect with small delays.
+    """
+
+    def __init__(self, address: str, connect_retries: int = 3, hass=None):
         self._address = address
         self._connect_retries = connect_retries
+        # Optional Home Assistant context; if provided, we can use HA's Bluetooth helper
+        self._hass = hass
 
     async def _connect(self):
         last = None
         for _ in range(self._connect_retries):
             try:
                 if establish_connection is not None:
-                    # Prefer using bleak-retry-connector when we can resolve a BLEDevice
-                    dev = await BleakScanner.find_device_by_address(self._address, timeout=5.0)
-                    if dev is not None:
+                    # Prefer HA bluetooth helper to resolve BLEDevice if hass is provided
+                    dev = None
+                    if self._hass is not None:
+                        try:
+                            # Import lazily to avoid hard dependency outside HA
+                            from homeassistant.components import bluetooth as ha_bt  # type: ignore
+
+                            dev = ha_bt.async_ble_device_from_address(
+                                self._hass, self._address, connectable=True
+                            )
+                        except Exception:
+                            dev = None
+                    if dev is None:
+                        # Fall back to BleakScanner lookup
+                        try:
+                            dev = await BleakScanner.find_device_by_address(
+                                self._address, timeout=5.0
+                            )
+                        except Exception:
+                            dev = None
+                    # Use bleak-retry-connector when available AND the BleakClient ctor supports
+                    # the extra kwargs that the connector forwards (like disconnected_callback).
+                    use_brc = _bleak_ctor_accepts_disconnected()
+                    if use_brc and dev is not None:
                         client = await establish_connection(
                             BleakClient,
                             dev,
-                            name=dev.name or self._address,
-                            disconnected_callback=None,
+                            timeout=15.0,
+                        )
+                    elif use_brc:
+                        # Pass address directly; bleak-retry-connector resolves and retries internally
+                        client = await establish_connection(
+                            BleakClient,
+                            self._address,
                             timeout=15.0,
                         )
                     else:
-                        # Fallback to plain Bleak connection if device not resolvable via scanner
+                        # Fallback for test stubs or environments without compatible BleakClient signature
                         client = BleakClient(self._address)
                         await client.connect(timeout=15.0)
                 else:
@@ -122,30 +183,44 @@ class FanSyncBleClient:
                 await asyncio.sleep(0.8)
         raise last
 
-    async def _ensure_notify(self, client: BleakClient, on_state):
+    async def _ensure_notify(self, client: BleakClient, on_state: Callable[[FanState], Any] | Callable[[FanState], Awaitable[Any]]):
+        """Start notify for RETURN frames and forward valid states to callback.
+
+        Broad exception handling is intentional: some backends may not support notifications
+        or may intermittently fail. In such cases we proceed with a best-effort GET.
+        """
+
         async def _cb(_, data: bytearray):
             st = FanState.from_bytes(bytes(data))
             if st.valid:
-                on_state(st)
+                res = on_state(st)
+                if asyncio.iscoroutine(res):
+                    await res
 
         try:
             await client.start_notify(NOTIFY_CHAR_UUID, _cb)
         except Exception:
+            # Notification not critical for get_state fallback; ignore.
             pass
 
-    async def _write(self, client: BleakClient, payload: bytes):
+    async def _write(self, client: BleakClient, payload: bytes) -> None:
+        """Write payload to the device, trying with response then without as fallback."""
         try:
             await client.write_gatt_char(WRITE_CHAR_UUID, payload, response=True)
         except Exception:
             await client.write_gatt_char(WRITE_CHAR_UUID, payload, response=False)
 
     async def get_state(self, timeout: float = 2.0) -> FanState:
+        """Fetch current state via GET + notify, with timeout fallback.
+
+        Returns a FanState (valid=False if nothing received within timeout).
+        """
         client = await self._connect()
         try:
             ev = asyncio.Event()
             state = FanState()
 
-            def on_state(st: FanState):
+            def on_state(st: FanState) -> None:
                 nonlocal state
                 state = st
                 ev.set()
@@ -176,7 +251,7 @@ class FanSyncBleClient:
         new_speed: int,
         st: FanState | None = None,
         assume_light: int | None = None,
-    ):
+    ) -> None:
         client = await self._connect()
         try:
             if not st:
@@ -216,7 +291,7 @@ class FanSyncBleClient:
 
     async def set_light(
         self, percent: int, st: FanState | None = None, assume_speed: int | None = None
-    ):
+    ) -> None:
         client = await self._connect()
         try:
             if not st:
@@ -248,7 +323,7 @@ class FanSyncBleClient:
                 pass
             await asyncio.sleep(0.4)
 
-    async def set_direction(self, direction: int, st: FanState | None = None):
+    async def set_direction(self, direction: int, st: FanState | None = None) -> None:
         client = await self._connect()
         try:
             if not st:
