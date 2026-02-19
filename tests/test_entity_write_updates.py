@@ -6,6 +6,10 @@ import pytest
 
 from custom_components.fansync_ble.client import FanState
 from custom_components.fansync_ble.const import CONF_DIMMABLE, CONF_DIRECTION_SUPPORTED
+
+pytest.importorskip("homeassistant.components.fan")
+pytest.importorskip("homeassistant.components.light")
+
 from custom_components.fansync_ble.fan import FanSyncFan
 from custom_components.fansync_ble.light import FanSyncLight
 
