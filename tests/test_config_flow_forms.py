@@ -4,6 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
+pytest.importorskip("voluptuous")
+
 from custom_components.fansync_ble import config_flow as cfg
 from custom_components.fansync_ble.config_flow import (
     FanSyncConfigFlow,
