@@ -10,6 +10,7 @@ This is the canonical AI agent instructions file for this repository.
 ## Repo Focus
 - Integration code: `custom_components/fansync_ble/`
 - Tests: `tests/`
+- Community docs: `README.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`
 
 ## Protocol Guardrails (Do Not Break)
 - Frame is always 10 bytes with checksum in byte 9.
@@ -30,6 +31,15 @@ This is the canonical AI agent instructions file for this repository.
 - Keep changes scoped; avoid broad refactors unless requested.
 - Match current style and naming patterns in neighboring files.
 - Add comments only when logic is not obvious.
+
+## Community Doc Compliance
+- Respect and follow repository policies in:
+  - `CONTRIBUTING.md`
+  - `CODE_OF_CONDUCT.md`
+  - `SECURITY.md`
+  - `SUPPORT.md`
+- When changing contributor workflow, support process, or disclosure expectations, update these docs in the same PR.
+- Do not direct security reports to public issues; always point to `SECURITY.md`.
 
 ## Validation Workflow
 - Run targeted tests first, then full tests when possible:
