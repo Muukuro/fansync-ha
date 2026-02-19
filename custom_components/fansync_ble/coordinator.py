@@ -1,6 +1,6 @@
 from __future__ import annotations
 import logging
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 import asyncio
 from dataclasses import replace
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -30,6 +30,10 @@ class FanSyncCoordinator(DataUpdateCoordinator):
         self.client = FanSyncBleClient(address, hass=hass)
         self.address = address
         self._last_state: "FanState | None" = None
+        self._last_success_at: datetime | None = None
+        self._last_attempt_at: datetime | None = None
+        self._consecutive_failures = 0
+        self._last_error: str | None = None
 
     def async_apply_local_state(
         self,
@@ -57,7 +61,26 @@ class FanSyncCoordinator(DataUpdateCoordinator):
         """Trigger a non-debounced refresh in the background."""
         self.hass.async_create_task(self.async_refresh())
 
+    def diagnostics_snapshot(self) -> dict:
+        """Return lightweight coordinator health diagnostics."""
+        return {
+            "address": self.address,
+            "last_attempt_at": (
+                self._last_attempt_at.isoformat() if self._last_attempt_at else None
+            ),
+            "last_success_at": (
+                self._last_success_at.isoformat() if self._last_success_at else None
+            ),
+            "consecutive_failures": self._consecutive_failures,
+            "last_error": self._last_error,
+            "has_last_state": self._last_state is not None,
+            "last_state_valid": bool(
+                getattr(self._last_state, "valid", False) if self._last_state else False
+            ),
+        }
+
     async def _async_update_data(self):
+        self._last_attempt_at = datetime.now(UTC)
         try:
             # Overall guard to ensure BLE client does not block coordinator forever
             # Allow sufficient time for BLE discovery/connection + notify roundtrip.
@@ -71,12 +94,19 @@ class FanSyncCoordinator(DataUpdateCoordinator):
             elif self._last_state is None:
                 # If we have no previous state at all, store whatever we got
                 self._last_state = state
+            self._consecutive_failures = 0
+            self._last_error = None
+            self._last_success_at = datetime.now(UTC)
         except asyncio.TimeoutError:
+            self._consecutive_failures += 1
+            self._last_error = "timeout"
             _LOGGER.warning("FanSync BLE update timed out; keeping last state")
             return self._last_state
         except BleakError as e:
             # Common transient issue: no available backend connection slot or device out of range
             msg = str(e)
+            self._consecutive_failures += 1
+            self._last_error = msg
             if "connection slot" in msg or "Not Found" in msg or "reach address" in msg:
                 _LOGGER.debug(
                     "FanSync BLE update skipped due to transient BLE backend issue: %s",
@@ -86,6 +116,8 @@ class FanSyncCoordinator(DataUpdateCoordinator):
             _LOGGER.warning("FanSync BLE update failed: %s", msg)
             return self._last_state
         except Exception as e:  # safeguard against other transient issues
+            self._consecutive_failures += 1
+            self._last_error = str(e)
             _LOGGER.warning("FanSync BLE unexpected update error: %s", e)
             return self._last_state
         return self._last_state
