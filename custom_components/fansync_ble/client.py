@@ -124,6 +124,8 @@ class FanSyncBleClient:
         self._connect_retries = connect_retries
         # Optional Home Assistant context; if provided, we can use HA's Bluetooth helper
         self._hass = hass
+        # Serialize BLE sessions to avoid overlapping command/poll connections.
+        self._io_lock = asyncio.Lock()
 
     async def _establish_with_brc(self, target):
         """Establish connection via bleak-retry-connector handling signature variants.
@@ -241,7 +243,7 @@ class FanSyncBleClient:
         except Exception:
             await client.write_gatt_char(WRITE_CHAR_UUID, payload, response=False)
 
-    async def get_state(self, timeout: float = 2.0) -> FanState:
+    async def _get_state_unlocked(self, timeout: float = 2.0) -> FanState:
         """Fetch current state via GET + notify, with timeout fallback.
 
         Returns a FanState (valid=False if nothing received within timeout).
@@ -277,107 +279,114 @@ class FanSyncBleClient:
                 pass
             await asyncio.sleep(0.4)
 
+    async def get_state(self, timeout: float = 2.0) -> FanState:
+        async with self._io_lock:
+            return await self._get_state_unlocked(timeout=timeout)
+
     async def set_speed(
         self,
         new_speed: int,
         st: FanState | None = None,
         assume_light: int | None = None,
     ) -> None:
-        client = await self._connect()
-        try:
+        async with self._io_lock:
             if not st:
-                st = await self.get_state()
-            if st.valid:
-                frame = build_frame(
-                    CONTROL_FAN_STATUS,
-                    new_speed,
-                    st.direction,
-                    st.up,
-                    st.down,
-                    st.timer_lo,
-                    st.timer_hi,
-                    st.fan_type,
-                )
-            else:
-                if assume_light is None:
-                    assume_light = 100
-                frame = build_frame(
-                    CONTROL_FAN_STATUS,
-                    new_speed,
-                    0,
-                    0,
-                    max(0, min(100, assume_light)),
-                    0,
-                    0,
-                    0,
-                )
-            await self._write(client, frame)
-            await asyncio.sleep(0.6)
-        finally:
+                st = await self._get_state_unlocked()
+            client = await self._connect()
             try:
-                await client.disconnect()
-            except Exception:
-                pass
+                if st.valid:
+                    frame = build_frame(
+                        CONTROL_FAN_STATUS,
+                        new_speed,
+                        st.direction,
+                        st.up,
+                        st.down,
+                        st.timer_lo,
+                        st.timer_hi,
+                        st.fan_type,
+                    )
+                else:
+                    if assume_light is None:
+                        assume_light = 100
+                    frame = build_frame(
+                        CONTROL_FAN_STATUS,
+                        new_speed,
+                        0,
+                        0,
+                        max(0, min(100, assume_light)),
+                        0,
+                        0,
+                        0,
+                    )
+                await self._write(client, frame)
+                await asyncio.sleep(0.6)
+            finally:
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
             await asyncio.sleep(0.4)
 
     async def set_light(
         self, percent: int, st: FanState | None = None, assume_speed: int | None = None
     ) -> None:
-        client = await self._connect()
-        try:
+        async with self._io_lock:
             if not st:
-                st = await self.get_state()
-            new_down = max(0, min(100, percent))
-            if st.valid:
-                frame = build_frame(
-                    CONTROL_FAN_STATUS,
-                    st.speed,
-                    st.direction,
-                    st.up,
-                    new_down,
-                    st.timer_lo,
-                    st.timer_hi,
-                    st.fan_type,
-                )
-            else:
-                if assume_speed is None:
-                    assume_speed = 1
-                frame = build_frame(
-                    CONTROL_FAN_STATUS, assume_speed, 0, 0, new_down, 0, 0, 0
-                )
-            await self._write(client, frame)
-            await asyncio.sleep(0.6)
-        finally:
+                st = await self._get_state_unlocked()
+            client = await self._connect()
             try:
-                await client.disconnect()
-            except Exception:
-                pass
+                new_down = max(0, min(100, percent))
+                if st.valid:
+                    frame = build_frame(
+                        CONTROL_FAN_STATUS,
+                        st.speed,
+                        st.direction,
+                        st.up,
+                        new_down,
+                        st.timer_lo,
+                        st.timer_hi,
+                        st.fan_type,
+                    )
+                else:
+                    if assume_speed is None:
+                        assume_speed = 1
+                    frame = build_frame(
+                        CONTROL_FAN_STATUS, assume_speed, 0, 0, new_down, 0, 0, 0
+                    )
+                await self._write(client, frame)
+                await asyncio.sleep(0.6)
+            finally:
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
             await asyncio.sleep(0.4)
 
     async def set_direction(self, direction: int, st: FanState | None = None) -> None:
-        client = await self._connect()
-        try:
+        async with self._io_lock:
             if not st:
-                st = await self.get_state()
-            d = 1 if direction else 0
-            if st.valid:
-                frame = build_frame(
-                    CONTROL_FAN_STATUS,
-                    st.speed,
-                    d,
-                    st.up,
-                    st.down,
-                    st.timer_lo,
-                    st.timer_hi,
-                    st.fan_type,
-                )
-            else:
-                frame = build_frame(CONTROL_FAN_STATUS, 1, d, 0, 100, 0, 0, 0)
-            await self._write(client, frame)
-            await asyncio.sleep(0.6)
-        finally:
+                st = await self._get_state_unlocked()
+            client = await self._connect()
             try:
-                await client.disconnect()
-            except Exception:
-                pass
+                d = 1 if direction else 0
+                if st.valid:
+                    frame = build_frame(
+                        CONTROL_FAN_STATUS,
+                        st.speed,
+                        d,
+                        st.up,
+                        st.down,
+                        st.timer_lo,
+                        st.timer_hi,
+                        st.fan_type,
+                    )
+                else:
+                    frame = build_frame(CONTROL_FAN_STATUS, 1, d, 0, 100, 0, 0, 0)
+                await self._write(client, frame)
+                await asyncio.sleep(0.6)
+            finally:
+                try:
+                    await client.disconnect()
+                except Exception:
+                    pass
             await asyncio.sleep(0.4)

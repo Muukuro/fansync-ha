@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from .const import DOMAIN, CONF_POLL_INTERVAL
+from .const import DOMAIN, CONF_POLL_INTERVAL, normalize_poll_interval
 
 if TYPE_CHECKING:
     # Only import HA types for type checking; avoid runtime dependency during tests
@@ -16,7 +16,9 @@ async def async_setup_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
 
     address = entry.data["address"]
     poll = entry.options.get(CONF_POLL_INTERVAL) if entry.options else None
-    coord = FanSyncCoordinator(hass, address, poll_interval=poll)
+    coord = FanSyncCoordinator(
+        hass, address, poll_interval=normalize_poll_interval(poll)
+    )
     await coord.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coord
 
