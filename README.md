@@ -1,4 +1,4 @@
-# FanSync BLE
+# FanSync BLE - Home Assistant Integration
 [![Tests](https://github.com/Muukuro/fansync-ha/actions/workflows/test.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/test.yml)
 [![HACS](https://github.com/Muukuro/fansync-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml)
