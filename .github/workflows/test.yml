@@ -22,13 +22,18 @@ jobs:
         with:
           path: .venv
           key: ${{ runner.os }}-pipenv-${{ hashFiles('Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
+      - name: Ensure valid venv cache
+        run: |
+          if [ -d .venv ] && [ ! -x .venv/bin/python ]; then
+            echo "Cached .venv is incomplete; recreating"
+            rm -rf .venv
+          fi
       - name: Install dependencies with Pipenv
         env:
           PIPENV_NOSPIN: 1
           PIPENV_VENV_IN_PROJECT: 1
         run: |
+          pipenv --python 3.13
           pipenv install --dev
       - name: Lint (ruff)
         run: pipenv run ruff check .
