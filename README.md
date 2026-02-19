@@ -1,7 +1,21 @@
 # FanSync BLE
-Control a FanSync BLE ceiling fan (fan + optional light) with Home Assistant.
+[![Tests](https://github.com/Muukuro/fansync-ha/actions/workflows/test.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/test.yml)
+[![HACS](https://github.com/Muukuro/fansync-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hacs.yml)
+[![Hassfest](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Muukuro/fansync-ha?sort=semver)](https://github.com/Muukuro/fansync-ha/releases)
+[![License](https://img.shields.io/github/license/Muukuro/fansync-ha)](LICENSE)
+
+Control FanSync Bluetooth ceiling fans from Home Assistant.
+
+This is an unofficial Home Assistant custom integration for Fanimation FanSync Bluetooth controls:
+https://fanimation.com/product-category/controls-remotes/fansync/fansync-bluetooth/
 
 This repository provides a custom integration that uses a reverse-engineered BLE protocol and short-lived BLE sessions for reliability.
+
+What you get:
+- Fan control (`off`, `low`, `medium`, `high`)
+- Optional light control (dimmable or on/off)
+- Optional direction control
 
 ## Install in Home Assistant
 1. Copy this repository to your HA config at `custom_components/fansync_ble/`.
