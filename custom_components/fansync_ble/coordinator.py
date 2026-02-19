@@ -3,9 +3,31 @@ import logging
 from datetime import UTC, datetime, timedelta
 import asyncio
 from dataclasses import replace
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.core import HomeAssistant
 from bleak.exc import BleakError
+
+try:
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+    from homeassistant.core import HomeAssistant
+except Exception:  # pragma: no cover - fallback for minimal test environments
+
+    class HomeAssistant:  # type: ignore[no-redef]
+        def async_create_task(self, _coro):
+            return None
+
+    class DataUpdateCoordinator:  # type: ignore[no-redef]
+        def __init__(self, hass, logger=None, name=None, update_interval=None):
+            self.hass = hass
+            self.logger = logger
+            self.name = name
+            self.update_interval = update_interval
+
+        def async_set_updated_data(self, _data):
+            return None
+
+        async def async_refresh(self):
+            return await self._async_update_data()
+
+
 from .client import FanSyncBleClient, FanState
 from .const import DEFAULT_POLL_INTERVAL
 
