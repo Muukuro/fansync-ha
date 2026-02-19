@@ -38,6 +38,7 @@ This is the canonical AI agent instructions file for this repository.
 - For lint checks (if tools are installed):
   - `ruff check .`
   - `black --check .`
+- Before every commit, ensure `black --check .` passes.
 
 ## Change Checklist
 - Confirm option handling still works in config/options flow.

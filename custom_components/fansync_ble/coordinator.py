@@ -39,7 +39,9 @@ class FanSyncCoordinator(DataUpdateCoordinator):
         down: int | None = None,
     ) -> None:
         """Apply an optimistic local state update and notify entities immediately."""
-        base = self._last_state if self._last_state is not None else FanState(valid=True)
+        base = (
+            self._last_state if self._last_state is not None else FanState(valid=True)
+        )
         st = replace(base)
         st.valid = True
         if speed is not None:
