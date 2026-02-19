@@ -13,6 +13,8 @@ from .const import (
     DEFAULT_DIMMABLE,
     DEFAULT_DIRECTION_SUPPORTED,
     DEFAULT_POLL_INTERVAL,
+    MIN_POLL_INTERVAL,
+    MAX_POLL_INTERVAL,
 )
 from .client import discover_candidates
 
@@ -74,7 +76,10 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): bool,
                     vol.Required(
                         CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL
-                    ): int,
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL),
+                    ),
                 }
             )
             if discovery_error:
@@ -95,7 +100,12 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(
                     CONF_DIRECTION_SUPPORTED, default=DEFAULT_DIRECTION_SUPPORTED
                 ): bool,
-                vol.Required(CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL): int,
+                vol.Required(
+                    CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL),
+                ),
             }
         )
         return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
@@ -135,7 +145,10 @@ class FanSyncOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(
                     CONF_POLL_INTERVAL,
                     default=opts.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL),
-                ): int,
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL),
+                ),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

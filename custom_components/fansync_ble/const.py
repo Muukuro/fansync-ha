@@ -21,3 +21,14 @@ DEFAULT_HAS_LIGHT = True
 DEFAULT_DIMMABLE = True
 DEFAULT_DIRECTION_SUPPORTED = False
 DEFAULT_POLL_INTERVAL = 15  # seconds
+MIN_POLL_INTERVAL = 5
+MAX_POLL_INTERVAL = 300
+
+
+def normalize_poll_interval(value) -> int:
+    """Normalize poll interval to a safe integer range."""
+    try:
+        ivalue = int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_POLL_INTERVAL
+    return max(MIN_POLL_INTERVAL, min(MAX_POLL_INTERVAL, ivalue))
