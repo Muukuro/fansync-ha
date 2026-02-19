@@ -4,6 +4,7 @@
 [![Hassfest](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml)
 [![Latest Release](https://img.shields.io/github/v/release/Muukuro/fansync-ha?sort=semver)](https://github.com/Muukuro/fansync-ha/releases)
 [![License](https://img.shields.io/github/license/Muukuro/fansync-ha)](LICENSE)
+[![Open your Home Assistant instance and open this repository in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Muukuro&repository=fansync-ha&category=integration)
 
 Control FanSync Bluetooth ceiling fans from Home Assistant.
 
