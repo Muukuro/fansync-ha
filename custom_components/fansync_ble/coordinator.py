@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 import asyncio
+from dataclasses import replace
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.core import HomeAssistant
 from bleak.exc import BleakError
@@ -29,6 +30,30 @@ class FanSyncCoordinator(DataUpdateCoordinator):
         self.client = FanSyncBleClient(address, hass=hass)
         self.address = address
         self._last_state: "FanState | None" = None
+
+    def async_apply_local_state(
+        self,
+        *,
+        speed: int | None = None,
+        direction: int | None = None,
+        down: int | None = None,
+    ) -> None:
+        """Apply an optimistic local state update and notify entities immediately."""
+        base = self._last_state if self._last_state is not None else FanState(valid=True)
+        st = replace(base)
+        st.valid = True
+        if speed is not None:
+            st.speed = speed
+        if direction is not None:
+            st.direction = direction
+        if down is not None:
+            st.down = down
+        self._last_state = st
+        self.async_set_updated_data(st)
+
+    def async_schedule_immediate_refresh(self) -> None:
+        """Trigger a non-debounced refresh in the background."""
+        self.hass.async_create_task(self.async_refresh())
 
     async def _async_update_data(self):
         try:

@@ -48,7 +48,8 @@ class FanSyncFan(FanEntity):
         await self.coordinator.client.set_speed(
             new_speed, st=self.coordinator._last_state, assume_light=100
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_apply_local_state(speed=new_speed)
+        self.coordinator.async_schedule_immediate_refresh()
 
     async def async_turn_on(self, percentage: int | None = None, **kwargs) -> None:
         if percentage is not None:
@@ -58,13 +59,15 @@ class FanSyncFan(FanEntity):
             curr = getattr(st, "speed", 0) if st else 0
             target = 1 if curr == 0 else curr
             await self.coordinator.client.set_speed(target, st=st, assume_light=100)
-            await self.coordinator.async_request_refresh()
+            self.coordinator.async_apply_local_state(speed=target)
+            self.coordinator.async_schedule_immediate_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
         await self.coordinator.client.set_speed(
             0, st=self.coordinator._last_state, assume_light=100
         )
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_apply_local_state(speed=0)
+        self.coordinator.async_schedule_immediate_refresh()
 
     @property
     def current_direction(self):
@@ -79,10 +82,11 @@ class FanSyncFan(FanEntity):
             return
         d = 1 if direction == "reverse" else 0
         await self.coordinator.client.set_direction(d, st=self.coordinator._last_state)
-        await self.coordinator.async_request_refresh()
+        self.coordinator.async_apply_local_state(direction=d)
+        self.coordinator.async_schedule_immediate_refresh()
 
     async def async_update(self):
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_refresh()
 
 
 async def async_setup_entry(
