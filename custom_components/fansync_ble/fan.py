@@ -7,6 +7,10 @@ from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN, CONF_DIRECTION_SUPPORTED
 from .client import FanState
 
+_DIRECTION_FEATURE = getattr(
+    FanEntityFeature, "SET_DIRECTION", FanEntityFeature.DIRECTION
+)
+
 
 class FanSyncFan(FanEntity):
     _attr_has_entity_name = True
@@ -24,7 +28,7 @@ class FanSyncFan(FanEntity):
         # Always advertise speed support via percentage. Add direction if enabled.
         self._attr_supported_features = FanEntityFeature.SET_SPEED
         if entry.options.get(CONF_DIRECTION_SUPPORTED, False):
-            self._attr_supported_features |= FanEntityFeature.SET_DIRECTION
+            self._attr_supported_features |= _DIRECTION_FEATURE
 
     @property
     def available(self):
