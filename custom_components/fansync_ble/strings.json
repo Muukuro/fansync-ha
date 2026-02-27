@@ -10,7 +10,8 @@
           "has_light": "This fan has a built-in light",
           "dimmable": "Light is dimmable",
           "direction_supported": "Fan supports reverse direction",
-          "poll_interval": "Polling interval (seconds)"
+          "poll_interval": "Polling interval (seconds)",
+          "turn_on_speed": "Default fan speed for turn on (1=low, 2=medium, 3=high)"
         }
       }
     },
@@ -28,7 +29,8 @@
           "has_light": "This fan has a built-in light",
           "dimmable": "Light is dimmable",
           "direction_supported": "Fan supports reverse direction",
-          "poll_interval": "Polling interval (seconds)"
+          "poll_interval": "Polling interval (seconds)",
+          "turn_on_speed": "Default fan speed for turn on (1=low, 2=medium, 3=high)"
         }
       }
     }

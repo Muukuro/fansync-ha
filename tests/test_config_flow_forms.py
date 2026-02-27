@@ -16,6 +16,7 @@ from custom_components.fansync_ble.const import (
     CONF_DIRECTION_SUPPORTED,
     CONF_HAS_LIGHT,
     CONF_POLL_INTERVAL,
+    CONF_TURN_ON_SPEED,
 )
 
 
@@ -64,9 +65,11 @@ async def test_config_flow_devices_found_uses_choice_schema(monkeypatch):
             CONF_DIMMABLE: False,
             CONF_DIRECTION_SUPPORTED: True,
             CONF_POLL_INTERVAL: 15,
+            CONF_TURN_ON_SPEED: 3,
         }
     )
     assert normalized["address"] == "CC:DD"
+    assert normalized[CONF_TURN_ON_SPEED] == 3
 
     with pytest.raises(Exception):
         schema(
@@ -76,6 +79,7 @@ async def test_config_flow_devices_found_uses_choice_schema(monkeypatch):
                 CONF_DIMMABLE: False,
                 CONF_DIRECTION_SUPPORTED: True,
                 CONF_POLL_INTERVAL: 15,
+                CONF_TURN_ON_SPEED: 3,
             }
         )
 
@@ -88,6 +92,7 @@ async def test_options_flow_schema_defaults_reflect_entry_options():
             CONF_DIMMABLE: False,
             CONF_DIRECTION_SUPPORTED: True,
             CONF_POLL_INTERVAL: 42,
+            CONF_TURN_ON_SPEED: 1,
         }
     )
     flow = FanSyncOptionsFlowHandler(config_entry)
@@ -101,3 +106,4 @@ async def test_options_flow_schema_defaults_reflect_entry_options():
     assert normalized[CONF_DIMMABLE] is False
     assert normalized[CONF_DIRECTION_SUPPORTED] is True
     assert normalized[CONF_POLL_INTERVAL] == 42
+    assert normalized[CONF_TURN_ON_SPEED] == 1
