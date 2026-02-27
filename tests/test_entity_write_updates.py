@@ -13,6 +13,7 @@ from custom_components.fansync_ble.const import (
 
 pytest.importorskip("homeassistant.components.fan")
 pytest.importorskip("homeassistant.components.light")
+from homeassistant.components.fan import FanEntityFeature
 
 from custom_components.fansync_ble.fan import FanSyncFan
 from custom_components.fansync_ble.light import FanSyncLight
@@ -102,6 +103,18 @@ async def test_fan_turn_off_sets_speed_zero_and_refreshes():
     assert coord.client.calls[0][1] == 0
     assert coord.local_updates[-1] == {"speed": 0}
     assert coord.refresh_scheduled == 1
+
+
+def test_fan_supported_features_include_turn_on_off_and_direction_when_enabled():
+    coord = _DummyCoordinator(FanState(speed=1, valid=True))
+    ent = FanSyncFan(coord, _entry({CONF_DIRECTION_SUPPORTED: True}))
+
+    expected = FanEntityFeature.SET_SPEED
+    expected |= getattr(FanEntityFeature, "TURN_ON", 0)
+    expected |= getattr(FanEntityFeature, "TURN_OFF", 0)
+    expected |= getattr(FanEntityFeature, "SET_DIRECTION", FanEntityFeature.DIRECTION)
+
+    assert ent.supported_features == expected
 
 
 @pytest.mark.asyncio

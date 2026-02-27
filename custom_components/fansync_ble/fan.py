@@ -16,6 +16,8 @@ from .client import FanState
 _DIRECTION_FEATURE = getattr(
     FanEntityFeature, "SET_DIRECTION", FanEntityFeature.DIRECTION
 )
+_TURN_ON_FEATURE = getattr(FanEntityFeature, "TURN_ON", 0)
+_TURN_OFF_FEATURE = getattr(FanEntityFeature, "TURN_OFF", 0)
 
 
 class FanSyncFan(FanEntity):
@@ -32,7 +34,9 @@ class FanSyncFan(FanEntity):
         )
 
         # Always advertise speed support via percentage. Add direction if enabled.
-        self._attr_supported_features = FanEntityFeature.SET_SPEED
+        self._attr_supported_features = (
+            FanEntityFeature.SET_SPEED | _TURN_ON_FEATURE | _TURN_OFF_FEATURE
+        )
         if entry.options.get(CONF_DIRECTION_SUPPORTED, False):
             self._attr_supported_features |= _DIRECTION_FEATURE
 
