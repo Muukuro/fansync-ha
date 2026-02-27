@@ -43,12 +43,12 @@ This is the canonical AI agent instructions file for this repository.
 
 ## Validation Workflow
 - Run targeted tests first, then full tests when possible:
-  - `pytest -q tests/test_client_protocol.py`
-  - `pytest -q`
+  - `pipenv run pytest -q tests/test_client_protocol.py`
+  - `pipenv run pytest -q`
 - For lint checks (if tools are installed):
-  - `ruff check .`
-  - `black --check .`
-- Before every commit, ensure `black --check .` passes.
+  - `pipenv run ruff check .`
+  - `pipenv run black --check .`
+- Before every commit, ensure `pipenv run black --check .` passes.
 
 ## Change Checklist
 - Confirm option handling still works in config/options flow.

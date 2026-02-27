@@ -65,7 +65,10 @@ class FanSyncFan(FanEntity):
         self.coordinator.async_apply_local_state(speed=new_speed)
         self.coordinator.async_schedule_immediate_refresh()
 
-    async def async_turn_on(self, percentage: int | None = None, **kwargs) -> None:
+    async def async_turn_on(
+        self, percentage: int | None = None, preset_mode: str | None = None, **kwargs
+    ) -> None:
+        del preset_mode
         if percentage is not None:
             await self.async_set_percentage(percentage)
         else:

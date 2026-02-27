@@ -93,6 +93,21 @@ async def test_fan_turn_on_uses_configured_default_speed_when_off():
 
 
 @pytest.mark.asyncio
+async def test_fan_turn_on_accepts_ha_positional_preset_mode_arg():
+    coord = _DummyCoordinator(FanState(speed=0, valid=True))
+    ent = FanSyncFan(
+        coord, _entry({CONF_DIRECTION_SUPPORTED: True, CONF_TURN_ON_SPEED: 2})
+    )
+
+    await ent.async_turn_on(None, None)
+
+    assert coord.client.calls[0][0] == "set_speed"
+    assert coord.client.calls[0][1] == 2
+    assert coord.local_updates[-1] == {"speed": 2}
+    assert coord.refresh_scheduled == 1
+
+
+@pytest.mark.asyncio
 async def test_fan_turn_off_sets_speed_zero_and_refreshes():
     coord = _DummyCoordinator(FanState(speed=3, valid=True))
     ent = FanSyncFan(coord, _entry({CONF_DIRECTION_SUPPORTED: True}))
