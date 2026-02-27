@@ -9,10 +9,14 @@ from .const import (
     CONF_DIMMABLE,
     CONF_DIRECTION_SUPPORTED,
     CONF_POLL_INTERVAL,
+    CONF_TURN_ON_SPEED,
     DEFAULT_HAS_LIGHT,
     DEFAULT_DIMMABLE,
     DEFAULT_DIRECTION_SUPPORTED,
     DEFAULT_POLL_INTERVAL,
+    DEFAULT_TURN_ON_SPEED,
+    MIN_SPEED,
+    MAX_SPEED,
     MIN_POLL_INTERVAL,
     MAX_POLL_INTERVAL,
 )
@@ -43,6 +47,9 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                     CONF_POLL_INTERVAL: user_input.get(
                         CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL
+                    ),
+                    CONF_TURN_ON_SPEED: user_input.get(
+                        CONF_TURN_ON_SPEED, DEFAULT_TURN_ON_SPEED
                     ),
                 }
                 return self.async_create_entry(
@@ -80,6 +87,12 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         vol.Coerce(int),
                         vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL),
                     ),
+                    vol.Required(
+                        CONF_TURN_ON_SPEED, default=DEFAULT_TURN_ON_SPEED
+                    ): vol.All(
+                        vol.Coerce(int),
+                        vol.Range(min=MIN_SPEED, max=MAX_SPEED),
+                    ),
                 }
             )
             if discovery_error:
@@ -105,6 +118,12 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): vol.All(
                     vol.Coerce(int),
                     vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL),
+                ),
+                vol.Required(
+                    CONF_TURN_ON_SPEED, default=DEFAULT_TURN_ON_SPEED
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_SPEED, max=MAX_SPEED),
                 ),
             }
         )
@@ -148,6 +167,13 @@ class FanSyncOptionsFlowHandler(config_entries.OptionsFlow):
                 ): vol.All(
                     vol.Coerce(int),
                     vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL),
+                ),
+                vol.Required(
+                    CONF_TURN_ON_SPEED,
+                    default=opts.get(CONF_TURN_ON_SPEED, DEFAULT_TURN_ON_SPEED),
+                ): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_SPEED, max=MAX_SPEED),
                 ),
             }
         )

@@ -34,6 +34,7 @@ Created entities:
 - `dimmable`: when false, light behaves as on/off and writes are clamped to `0/100`.
 - `direction_supported`: enables direction control.
 - `poll_interval`: coordinator polling interval in seconds.
+- `turn_on_speed`: default fan speed used by `fan.turn_on` when no percentage is provided (`1=low`, `2=medium`, `3=high`).
 
 ## Development
 Pipenv is preferred.

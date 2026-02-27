@@ -5,7 +5,11 @@ from types import SimpleNamespace
 import pytest
 
 from custom_components.fansync_ble.client import FanState
-from custom_components.fansync_ble.const import CONF_DIMMABLE, CONF_DIRECTION_SUPPORTED
+from custom_components.fansync_ble.const import (
+    CONF_DIMMABLE,
+    CONF_DIRECTION_SUPPORTED,
+    CONF_TURN_ON_SPEED,
+)
 
 pytest.importorskip("homeassistant.components.fan")
 pytest.importorskip("homeassistant.components.light")
@@ -69,6 +73,34 @@ async def test_fan_set_direction_applies_local_state_and_refresh():
     assert coord.client.calls[0][0] == "set_direction"
     assert coord.client.calls[0][1] == 1
     assert coord.local_updates[-1] == {"direction": 1}
+    assert coord.refresh_scheduled == 1
+
+
+@pytest.mark.asyncio
+async def test_fan_turn_on_uses_configured_default_speed_when_off():
+    coord = _DummyCoordinator(FanState(speed=0, valid=True))
+    ent = FanSyncFan(
+        coord, _entry({CONF_DIRECTION_SUPPORTED: True, CONF_TURN_ON_SPEED: 2})
+    )
+
+    await ent.async_turn_on()
+
+    assert coord.client.calls[0][0] == "set_speed"
+    assert coord.client.calls[0][1] == 2
+    assert coord.local_updates[-1] == {"speed": 2}
+    assert coord.refresh_scheduled == 1
+
+
+@pytest.mark.asyncio
+async def test_fan_turn_off_sets_speed_zero_and_refreshes():
+    coord = _DummyCoordinator(FanState(speed=3, valid=True))
+    ent = FanSyncFan(coord, _entry({CONF_DIRECTION_SUPPORTED: True}))
+
+    await ent.async_turn_off()
+
+    assert coord.client.calls[0][0] == "set_speed"
+    assert coord.client.calls[0][1] == 0
+    assert coord.local_updates[-1] == {"speed": 0}
     assert coord.refresh_scheduled == 1
 
 

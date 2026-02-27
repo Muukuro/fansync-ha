@@ -4,7 +4,13 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN, CONF_DIRECTION_SUPPORTED
+from .const import (
+    DOMAIN,
+    CONF_DIRECTION_SUPPORTED,
+    CONF_TURN_ON_SPEED,
+    DEFAULT_TURN_ON_SPEED,
+    normalize_turn_on_speed,
+)
 from .client import FanState
 
 _DIRECTION_FEATURE = getattr(
@@ -61,7 +67,10 @@ class FanSyncFan(FanEntity):
         else:
             st = self.coordinator._last_state
             curr = getattr(st, "speed", 0) if st else 0
-            target = 1 if curr == 0 else curr
+            default_speed = normalize_turn_on_speed(
+                self.entry.options.get(CONF_TURN_ON_SPEED, DEFAULT_TURN_ON_SPEED)
+            )
+            target = default_speed if curr == 0 else curr
             await self.coordinator.client.set_speed(target, st=st, assume_light=100)
             self.coordinator.async_apply_local_state(speed=target)
             self.coordinator.async_schedule_immediate_refresh()

@@ -16,13 +16,17 @@ CONF_HAS_LIGHT = "has_light"
 CONF_DIMMABLE = "dimmable"
 CONF_DIRECTION_SUPPORTED = "direction_supported"
 CONF_POLL_INTERVAL = "poll_interval"
+CONF_TURN_ON_SPEED = "turn_on_speed"
 
 DEFAULT_HAS_LIGHT = True
 DEFAULT_DIMMABLE = True
 DEFAULT_DIRECTION_SUPPORTED = False
 DEFAULT_POLL_INTERVAL = 15  # seconds
+DEFAULT_TURN_ON_SPEED = 2  # medium
 MIN_POLL_INTERVAL = 5
 MAX_POLL_INTERVAL = 300
+MIN_SPEED = 1
+MAX_SPEED = 3
 
 
 def normalize_poll_interval(value) -> int:
@@ -32,3 +36,12 @@ def normalize_poll_interval(value) -> int:
     except (TypeError, ValueError):
         return DEFAULT_POLL_INTERVAL
     return max(MIN_POLL_INTERVAL, min(MAX_POLL_INTERVAL, ivalue))
+
+
+def normalize_turn_on_speed(value) -> int:
+    """Normalize default turn-on speed to low/medium/high (1..3)."""
+    try:
+        ivalue = int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_TURN_ON_SPEED
+    return max(MIN_SPEED, min(MAX_SPEED, ivalue))
