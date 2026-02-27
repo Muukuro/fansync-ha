@@ -30,7 +30,7 @@ class FanSyncFan(FanEntity):
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}-fan"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE"
+            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync Bluetooth"
         )
 
         # Always advertise speed support via percentage. Add direction if enabled.

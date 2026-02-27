@@ -1,4 +1,4 @@
-# Contributing to FanSync BLE
+# Contributing to FanSync Bluetooth
 
 Thanks for contributing.
 

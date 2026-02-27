@@ -16,7 +16,7 @@ async def test_async_get_config_entry_diagnostics_returns_coordinator_snapshot()
     )
     entry = SimpleNamespace(
         entry_id="entry-1",
-        title="FanSync BLE (AA:BB)",
+        title="FanSync Bluetooth (AA:BB)",
         options={"has_light": True},
     )
 

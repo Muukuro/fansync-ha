@@ -122,7 +122,7 @@ class FanSyncCoordinator(DataUpdateCoordinator):
         except asyncio.TimeoutError:
             self._consecutive_failures += 1
             self._last_error = "timeout"
-            _LOGGER.warning("FanSync BLE update timed out; keeping last state")
+            _LOGGER.warning("FanSync Bluetooth update timed out; keeping last state")
             return self._last_state
         except BleakError as e:
             # Common transient issue: no available backend connection slot or device out of range
@@ -131,15 +131,15 @@ class FanSyncCoordinator(DataUpdateCoordinator):
             self._last_error = msg
             if "connection slot" in msg or "Not Found" in msg or "reach address" in msg:
                 _LOGGER.debug(
-                    "FanSync BLE update skipped due to transient BLE backend issue: %s",
+                    "FanSync Bluetooth update skipped due to transient BLE backend issue: %s",
                     msg,
                 )
                 return self._last_state
-            _LOGGER.warning("FanSync BLE update failed: %s", msg)
+            _LOGGER.warning("FanSync Bluetooth update failed: %s", msg)
             return self._last_state
         except Exception as e:  # safeguard against other transient issues
             self._consecutive_failures += 1
             self._last_error = str(e)
-            _LOGGER.warning("FanSync BLE unexpected update error: %s", e)
+            _LOGGER.warning("FanSync Bluetooth unexpected update error: %s", e)
             return self._last_state
         return self._last_state

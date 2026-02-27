@@ -1,9 +1,9 @@
 {
-  "title": "FanSync BLE",
+  "title": "FanSync Bluetooth",
   "config": {
     "step": {
       "user": {
-        "title": "Set up FanSync BLE",
+        "title": "Set up FanSync Bluetooth",
         "description": "Select your fan from the list if discovered, or enter its BLE address manually. If nothing appears, ensure Bluetooth is available and the fan is powered on and nearby. Configure these device options now; you can change them later in Options.",
         "data": {
           "address": "BLE device address",
@@ -24,7 +24,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "FanSync BLE options",
+        "title": "FanSync Bluetooth options",
         "data": {
           "has_light": "This fan has a built-in light",
           "dimmable": "Light is dimmable",

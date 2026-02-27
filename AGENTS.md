@@ -1,9 +1,9 @@
-# AGENTS.md - FanSync BLE Project Instructions
+# AGENTS.md - FanSync Bluetooth Project Instructions
 
 This is the canonical AI agent instructions file for this repository.
 
 ## Purpose
-- Build and maintain a Home Assistant custom integration for FanSync BLE ceiling fans.
+- Build and maintain a Home Assistant custom integration for FanSync Bluetooth ceiling fans.
 - Keep behavior stable with the reverse-engineered 10-byte protocol.
 - Favor safe, minimal changes that preserve existing fan/light state fields.
 

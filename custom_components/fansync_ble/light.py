@@ -17,7 +17,7 @@ class FanSyncLight(LightEntity):
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}-light"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync BLE"
+            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync Bluetooth"
         )
 
         if entry.options.get(CONF_DIMMABLE, True):

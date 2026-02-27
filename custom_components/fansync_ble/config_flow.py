@@ -24,7 +24,7 @@ from .client import discover_candidates
 
 
 class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow to set up FanSync BLE integration."""
+    """Config flow to set up FanSync Bluetooth integration."""
 
     VERSION = 1
 
@@ -53,7 +53,7 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                 }
                 return self.async_create_entry(
-                    title=f"FanSync BLE ({address})",
+                    title=f"FanSync Bluetooth ({address})",
                     data={"address": address},
                     options=options,
                 )

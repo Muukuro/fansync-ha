@@ -1,6 +1,6 @@
 {
   "domain": "fansync_ble",
-  "name": "FanSync BLE Fan",
+  "name": "FanSync Bluetooth",
   "bluetooth": [
     {
       "local_name": "CeilingFan",

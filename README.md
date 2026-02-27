@@ -1,4 +1,4 @@
-# FanSync BLE - Home Assistant Integration
+# FanSync Bluetooth - Home Assistant Integration
 [![Tests](https://github.com/Muukuro/fansync-ha/actions/workflows/test.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/test.yml)
 [![HACS](https://github.com/Muukuro/fansync-ha/actions/workflows/hacs.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hacs.yml)
 [![Hassfest](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml/badge.svg)](https://github.com/Muukuro/fansync-ha/actions/workflows/hassfest.yml)
@@ -22,7 +22,7 @@ What you get:
 
 1. Copy this repository to your HA config at `custom_components/fansync_ble/`.
 2. Restart Home Assistant.
-3. Go to `Settings -> Devices & Services -> Add Integration -> FanSync BLE`.
+3. Go to `Settings -> Devices & Services -> Add Integration -> FanSync Bluetooth`.
 4. Let it scan, select your device, and save.
 
 Created entities:
