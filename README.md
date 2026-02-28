@@ -29,12 +29,31 @@ Created entities:
 - Always: Fan entity (off/low/medium/high, optional direction)
 - Optional: Light entity (dimmable or on/off based on options)
 
+## Actions and Services
+This integration does not register custom Home Assistant actions/services.
+
+Use standard entity actions on the created fan/light entities:
+- Fan: `fan.turn_on`, `fan.turn_off`, `fan.set_percentage`, and (when enabled) `fan.set_direction`
+- Light: `light.turn_on`, `light.turn_off` (brightness for dimmable mode)
+
+Behavior notes:
+- `fan.turn_on` without percentage uses the configured `turn_on_speed` option.
+- Non-dimmable light mode clamps writes to `0` or `100`.
+
 ## Configuration Options
 - `has_light`: when false, no light entity is created.
 - `dimmable`: when false, light behaves as on/off and writes are clamped to `0/100`.
 - `direction_supported`: enables direction control.
 - `poll_interval`: coordinator polling interval in seconds.
 - `turn_on_speed`: default fan speed used by `fan.turn_on` when no percentage is provided (`1=low`, `2=medium`, `3=high`).
+
+## Remove Integration
+1. In Home Assistant, open `Settings -> Devices & Services`.
+2. Select `FanSync Bluetooth`.
+3. Open the three-dot menu and choose `Delete`.
+4. Confirm removal.
+
+After removal, entities created by this config entry are removed by Home Assistant.
 
 ## Development
 Pipenv is preferred.
