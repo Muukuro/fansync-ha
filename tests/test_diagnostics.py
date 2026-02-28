@@ -11,13 +11,13 @@ async def test_async_get_config_entry_diagnostics_returns_coordinator_snapshot()
         def diagnostics_snapshot(self):
             return {"consecutive_failures": 2, "last_error": "timeout"}
 
-    hass = SimpleNamespace(
-        data={"fansync_ble": {"entry-1": DummyCoordinator()}},
-    )
+    coord = DummyCoordinator()
+    hass = SimpleNamespace()
     entry = SimpleNamespace(
         entry_id="entry-1",
         title="FanSync Bluetooth (AA:BB)",
         options={"has_light": True},
+        runtime_data=coord,
     )
 
     diag = await async_get_config_entry_diagnostics(hass, entry)

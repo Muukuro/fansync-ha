@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from .const import DOMAIN, CONF_POLL_INTERVAL, normalize_poll_interval
+from .const import CONF_POLL_INTERVAL, normalize_poll_interval
 
 if TYPE_CHECKING:
     # Only import HA types for type checking; avoid runtime dependency during tests
@@ -20,7 +20,7 @@ async def async_setup_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
         hass, address, poll_interval=normalize_poll_interval(poll)
     )
     await coord.async_config_entry_first_refresh()
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coord
+    entry.runtime_data = coord
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -31,7 +31,8 @@ async def async_setup_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
 
 async def async_unload_entry(hass: "HomeAssistant", entry: "ConfigEntry"):
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    hass.data[DOMAIN].pop(entry.entry_id, None)
+    if unload_ok:
+        entry.runtime_data = None
     return unload_ok
 
 
