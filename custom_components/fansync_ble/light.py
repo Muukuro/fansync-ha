@@ -3,7 +3,7 @@ from homeassistant.components.light import LightEntity, ColorMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-from .const import CONF_DIMMABLE, CONF_HAS_LIGHT
+from .const import DOMAIN, CONF_DIMMABLE, CONF_HAS_LIGHT
 from .client import FanState
 from .entity import FanSyncBaseEntity
 

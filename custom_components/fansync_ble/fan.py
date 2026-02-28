@@ -4,6 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 from .const import (
+    DOMAIN,
     CONF_DIRECTION_SUPPORTED,
     CONF_TURN_ON_SPEED,
     DEFAULT_TURN_ON_SPEED,
