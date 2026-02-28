@@ -94,6 +94,7 @@ class FanSyncFan(FanSyncBaseEntity, FanEntity):
         self.coordinator.async_apply_local_state(direction=d)
         self.coordinator.async_schedule_immediate_refresh()
 
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
