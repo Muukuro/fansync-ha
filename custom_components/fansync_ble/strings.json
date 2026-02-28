@@ -12,12 +12,21 @@
           "direction_supported": "Fan supports reverse direction",
           "poll_interval": "Polling interval (seconds)",
           "turn_on_speed": "Default fan speed for turn on (1=low, 2=medium, 3=high)"
+        },
+        "data_description": {
+          "address": "Bluetooth address (for example: AA:BB:CC:DD:EE:FF).",
+          "has_light": "Disable if your fan has no light kit.",
+          "dimmable": "Disable for non-dimmable lights; brightness writes will be clamped to on/off.",
+          "direction_supported": "Enable only if your fan supports reverse direction control.",
+          "poll_interval": "How often Home Assistant polls the fan for updated state.",
+          "turn_on_speed": "Speed used when turning on without a percentage."
         }
       }
     },
     "error": {
       "no_devices_found": "No FanSync devices discovered. Make sure Bluetooth is enabled, the fan is on and within range, then try again.",
       "bluetooth_unavailable": "Bluetooth is unavailable in this Home Assistant instance. Ensure the host has a working Bluetooth adapter or use a Bluetooth Proxy.",
+      "cannot_connect": "Could not communicate with this fan. Verify the address and try again.",
       "address_required": "Please enter a BLE address."
     }
   },
@@ -31,6 +40,13 @@
           "direction_supported": "Fan supports reverse direction",
           "poll_interval": "Polling interval (seconds)",
           "turn_on_speed": "Default fan speed for turn on (1=low, 2=medium, 3=high)"
+        },
+        "data_description": {
+          "has_light": "Disable if your fan has no light kit.",
+          "dimmable": "Disable for non-dimmable lights; brightness writes will be clamped to on/off.",
+          "direction_supported": "Enable only if your fan supports reverse direction control.",
+          "poll_interval": "How often Home Assistant polls the fan for updated state.",
+          "turn_on_speed": "Speed used when turning on without a percentage."
         }
       }
     }

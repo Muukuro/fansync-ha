@@ -1,6 +1,5 @@
 from __future__ import annotations
 from homeassistant.components.fan import FanEntity, FanEntityFeature
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
@@ -12,6 +11,7 @@ from .const import (
     normalize_turn_on_speed,
 )
 from .client import FanState
+from .entity import FanSyncBaseEntity
 
 _DIRECTION_FEATURE = getattr(
     FanEntityFeature, "SET_DIRECTION", FanEntityFeature.DIRECTION
@@ -20,18 +20,12 @@ _TURN_ON_FEATURE = getattr(FanEntityFeature, "TURN_ON", 0)
 _TURN_OFF_FEATURE = getattr(FanEntityFeature, "TURN_OFF", 0)
 
 
-class FanSyncFan(FanEntity):
-    _attr_has_entity_name = True
+class FanSyncFan(FanSyncBaseEntity, FanEntity):
     _attr_name = "Ceiling Fan"
     _attr_speed_count = 3
 
     def __init__(self, coordinator, entry):
-        self.coordinator = coordinator
-        self.entry = entry
-        self._attr_unique_id = f"{entry.entry_id}-fan"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)}, name="FanSync Bluetooth"
-        )
+        super().__init__(coordinator, entry, object_id_suffix="fan")
 
         # Always advertise speed support via percentage. Add direction if enabled.
         self._attr_supported_features = (
@@ -39,11 +33,6 @@ class FanSyncFan(FanEntity):
         )
         if entry.options.get(CONF_DIRECTION_SUPPORTED, False):
             self._attr_supported_features |= _DIRECTION_FEATURE
-
-    @property
-    def available(self):
-        st = self.coordinator._last_state
-        return st is not None and st.valid
 
     @property
     def is_on(self):
@@ -104,9 +93,6 @@ class FanSyncFan(FanEntity):
         await self.coordinator.client.set_direction(d, st=self.coordinator._last_state)
         self.coordinator.async_apply_local_state(direction=d)
         self.coordinator.async_schedule_immediate_refresh()
-
-    async def async_update(self):
-        await self.coordinator.async_refresh()
 
 
 async def async_setup_entry(

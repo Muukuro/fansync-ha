@@ -20,7 +20,7 @@ from .const import (
     MIN_POLL_INTERVAL,
     MAX_POLL_INTERVAL,
 )
-from .client import discover_candidates
+from .client import FanSyncBleClient, discover_candidates
 
 
 class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -38,6 +38,16 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(address)
                 self._abort_if_unique_id_configured()
+                # Validate connectivity before creating the entry.
+                try:
+                    client = FanSyncBleClient(address, hass=getattr(self, "hass", None))
+                    state = await client.get_state(timeout=3.0)
+                    if not getattr(state, "valid", False):
+                        errors["base"] = "cannot_connect"
+                except Exception:
+                    errors["base"] = "cannot_connect"
+
+            if not errors:
                 # Build options from submitted fields
                 options = {
                     CONF_HAS_LIGHT: user_input.get(CONF_HAS_LIGHT, DEFAULT_HAS_LIGHT),
@@ -96,7 +106,7 @@ class FanSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             )
             if discovery_error:
-                errors["base"] = discovery_error
+                errors.setdefault("base", discovery_error)
             else:
                 # Only set this if not already set due to validation
                 errors.setdefault("base", "no_devices_found")
