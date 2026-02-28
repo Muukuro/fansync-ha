@@ -18,6 +18,7 @@
     "error": {
       "no_devices_found": "No FanSync devices discovered. Make sure Bluetooth is enabled, the fan is on and within range, then try again.",
       "bluetooth_unavailable": "Bluetooth is unavailable in this Home Assistant instance. Ensure the host has a working Bluetooth adapter or use a Bluetooth Proxy.",
+      "cannot_connect": "Could not communicate with this fan. Verify the address and try again.",
       "address_required": "Please enter a BLE address."
     }
   },

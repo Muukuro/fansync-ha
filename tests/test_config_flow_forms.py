@@ -18,6 +18,7 @@ from custom_components.fansync_ble.const import (
     CONF_POLL_INTERVAL,
     CONF_TURN_ON_SPEED,
 )
+from custom_components.fansync_ble.client import FanState
 
 
 @pytest.mark.asyncio
@@ -107,3 +108,79 @@ async def test_options_flow_schema_defaults_reflect_entry_options():
     assert normalized[CONF_DIRECTION_SUPPORTED] is True
     assert normalized[CONF_POLL_INTERVAL] == 42
     assert normalized[CONF_TURN_ON_SPEED] == 1
+
+
+@pytest.mark.asyncio
+async def test_config_flow_submit_creates_entry_when_connection_succeeds(monkeypatch):
+    async def no_devices(timeout=8.0, name_hint=None):
+        return []
+
+    class OkClient:
+        def __init__(self, address, hass=None):
+            self.address = address
+            self.hass = hass
+
+        async def get_state(self, timeout=3.0):
+            return FanState(valid=True)
+
+    monkeypatch.setattr(cfg, "discover_candidates", no_devices)
+    monkeypatch.setattr(cfg, "FanSyncBleClient", OkClient)
+
+    flow = FanSyncConfigFlow()
+    flow._abort_if_unique_id_configured = lambda: None
+
+    async def _set_unique_id(_uid):
+        return None
+
+    flow.async_set_unique_id = _set_unique_id
+
+    res = await flow.async_step_user(
+        {
+            "address": "AA:BB:CC:DD:EE:FF",
+            CONF_HAS_LIGHT: True,
+            CONF_DIMMABLE: True,
+            CONF_DIRECTION_SUPPORTED: False,
+            CONF_POLL_INTERVAL: 15,
+            CONF_TURN_ON_SPEED: 2,
+        }
+    )
+    assert res["type"] == "create_entry"
+    assert res["data"]["address"] == "AA:BB:CC:DD:EE:FF"
+
+
+@pytest.mark.asyncio
+async def test_config_flow_submit_shows_cannot_connect_on_failed_probe(monkeypatch):
+    async def no_devices(timeout=8.0, name_hint=None):
+        return []
+
+    class FailingClient:
+        def __init__(self, address, hass=None):
+            self.address = address
+            self.hass = hass
+
+        async def get_state(self, timeout=3.0):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(cfg, "discover_candidates", no_devices)
+    monkeypatch.setattr(cfg, "FanSyncBleClient", FailingClient)
+
+    flow = FanSyncConfigFlow()
+    flow._abort_if_unique_id_configured = lambda: None
+
+    async def _set_unique_id(_uid):
+        return None
+
+    flow.async_set_unique_id = _set_unique_id
+
+    res = await flow.async_step_user(
+        {
+            "address": "AA:BB:CC:DD:EE:FF",
+            CONF_HAS_LIGHT: True,
+            CONF_DIMMABLE: True,
+            CONF_DIRECTION_SUPPORTED: False,
+            CONF_POLL_INTERVAL: 15,
+            CONF_TURN_ON_SPEED: 2,
+        }
+    )
+    assert res["type"] == "form"
+    assert res["errors"]["base"] == "cannot_connect"
